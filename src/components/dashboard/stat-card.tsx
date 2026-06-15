@@ -1,0 +1,39 @@
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
+
+export function StatCard({
+  label,
+  value,
+  icon: Icon,
+  accent,
+  hint,
+}: {
+  label: string;
+  value: number | string;
+  icon: LucideIcon;
+  accent?: "brand" | "amber" | "red" | "blue";
+  hint?: string;
+}) {
+  const accentClass = {
+    brand: "bg-brand/10 text-brand",
+    amber: "bg-amber-100 text-amber-700",
+    red: "bg-red-100 text-red-700",
+    blue: "bg-blue-100 text-blue-700",
+  }[accent ?? "brand"];
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-neutral-500">{label}</p>
+          <p className="mt-2 text-3xl font-semibold text-neutral-900">{value}</p>
+          {hint && <p className="mt-1 text-xs text-neutral-400">{hint}</p>}
+        </div>
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", accentClass)}>
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </Card>
+  );
+}
