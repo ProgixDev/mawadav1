@@ -12,7 +12,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Signing in…" : "Sign in"}
+      {pending ? "Connexion…" : "Se connecter"}
     </Button>
   );
 }
@@ -24,13 +24,13 @@ export function LoginForm() {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium text-neutral-700">
-          Email
+          Adresse courriel
         </label>
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="password" className="text-sm font-medium text-neutral-700">
-          Password
+          Mot de passe
         </label>
         <Input
           id="password"

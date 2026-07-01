@@ -2,86 +2,107 @@
 // Display-only — the matching engine keys off the raw codes.
 
 export const DIMENSION_LABELS: Record<string, string> = {
-  age: "Age",
-  practice: "Religiosity",
-  marital: "Marital status",
-  children_has: "Has children",
-  children_wants: "Wants children",
-  education: "Education",
-  smoking: "Smoking",
+  age: "Âge",
+  practice: "Religiosité",
+  prayer: "Prière",
+  hijab: "Hijab",
+  marital: "État civil",
+  children_has: "A des enfants",
+  children_wants: "Souhaite des enfants",
+  education: "Éducation",
+  smoking: "Tabagisme",
   madhab: "Madhab",
-  language: "Language",
-  location: "Country / mobility",
-  timeline: "Marriage timeline",
-  quran: "Qur'an level",
-  islamic_education: "Islamic education",
-  income: "Income",
+  language: "Langue",
+  location: "Pays / mobilité",
+  timeline: "Échéancier de mariage",
+  quran: "Niveau de Coran",
+  islamic_education: "Éducation islamique",
+  income: "Revenu",
   profession: "Profession",
-  height: "Height",
-  nationality: "Nationality",
+  height: "Taille",
+  nationality: "Nationalité",
+};
+
+export const ROLE_LABELS: Record<string, string> = {
+  user: "Membre",
+  admin: "Administrateur",
+  super_admin: "Super administrateur",
+  mahram: "Mahram (tuteur)",
+};
+
+export const PRAYER_LABELS: Record<string, string> = {
+  regularly: "Oui, je prie régulièrement",
+  sometimes: "Je prie mais pas régulièrement",
+  never: "Non, je ne prie pas",
+};
+
+export const MAHRAM_STATUS_LABELS: Record<string, string> = {
+  pending: "En attente d’approbation du mahram",
+  approved: "Approuvé",
+  rejected: "Rejeté",
 };
 
 export const IMPORTANCE_LABELS: Record<string, string> = {
-  must_have: "Must have",
+  must_have: "Indispensable",
   important: "Important",
-  preferred: "Preferred",
-  doesnt_matter: "Doesn't matter",
+  preferred: "Préféré",
+  doesnt_matter: "Sans importance",
 };
 
 export const LIFESTYLE_LABELS: Record<string, string> = {
-  family_proximity: "Living near family",
-  relocation: "Willing to relocate",
-  spouse_employment: "Spouse works / stays home",
-  quran_priority: "Qur'an memorisation priority",
-  islamic_knowledge_priority: "Islamic knowledge priority",
-  conflict_style: "Conflict handling",
-  financial_priority: "Financial stability priority",
-  household_responsibilities: "Household responsibilities",
-  religious_practice_priority: "Family religious practice priority",
-  long_term_goals: "Long-term goals",
+  family_proximity: "Habiter près de la famille",
+  relocation: "Prêt à déménager",
+  spouse_employment: "Conjoint travaille / reste à la maison",
+  quran_priority: "Priorité à la mémorisation du Coran",
+  islamic_knowledge_priority: "Priorité au savoir islamique",
+  conflict_style: "Gestion des conflits",
+  financial_priority: "Priorité à la stabilité financière",
+  household_responsibilities: "Responsabilités domestiques",
+  religious_practice_priority: "Priorité à la pratique religieuse familiale",
+  long_term_goals: "Objectifs à long terme",
 };
 
 const PRIORITY_ANSWERS: Record<string, string> = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  essential: "Essential",
+  low: "Faible",
+  medium: "Moyenne",
+  high: "Élevée",
+  essential: "Essentielle",
 };
 
 export const LIFESTYLE_ANSWER_LABELS: Record<string, Record<string, string>> = {
   family_proximity: {
-    comfortable: "Comfortable",
-    neutral: "Neutral",
-    prefer_distance: "Prefers distance",
+    comfortable: "À l’aise",
+    neutral: "Neutre",
+    prefer_distance: "Préfère la distance",
   },
   relocation: {
-    yes: "Yes",
-    depends: "Depends",
-    no: "No",
+    yes: "Oui",
+    depends: "Cela dépend",
+    no: "Non",
   },
   spouse_employment: {
-    works: "Works",
-    either: "Either",
-    stays_home: "Stays home",
+    works: "Travaille",
+    either: "Indifférent",
+    stays_home: "Reste à la maison",
   },
   quran_priority: PRIORITY_ANSWERS,
   islamic_knowledge_priority: PRIORITY_ANSWERS,
   financial_priority: PRIORITY_ANSWERS,
   religious_practice_priority: PRIORITY_ANSWERS,
   conflict_style: {
-    discuss_calmly: "Discuss calmly",
-    need_space: "Needs space",
-    seek_mediation: "Seeks mediation",
+    discuss_calmly: "Discuter calmement",
+    need_space: "A besoin d’espace",
+    seek_mediation: "Cherche une médiation",
   },
   household_responsibilities: {
-    shared: "Shared",
-    traditional: "Traditional",
-    flexible: "Flexible",
+    shared: "Partagées",
+    traditional: "Traditionnelles",
+    flexible: "Flexibles",
   },
   long_term_goals: {
-    family_first: "Family first",
-    career_balance: "Career balance",
-    faith_centered: "Faith-centered",
-    growth_travel: "Growth & travel",
+    family_first: "La famille d’abord",
+    career_balance: "Équilibre de carrière",
+    faith_centered: "Centré sur la foi",
+    growth_travel: "Épanouissement et voyages",
   },
 };

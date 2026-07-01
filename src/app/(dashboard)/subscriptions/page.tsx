@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 const FILTERS = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "trial", label: "Trial" },
-  { value: "expired", label: "Expired" },
-  { value: "canceled", label: "Canceled" },
+  { value: "all", label: "Tous" },
+  { value: "active", label: "Actifs" },
+  { value: "trial", label: "Essai" },
+  { value: "expired", label: "Expirés" },
+  { value: "canceled", label: "Annulés" },
 ];
 
 export default async function SubscriptionsPage({
@@ -28,7 +28,7 @@ export default async function SubscriptionsPage({
 
   return (
     <div>
-      <PageHeader title="Subscriptions" description="RevenueCat entitlements" />
+      <PageHeader title="Abonnements" description="Droits d'accès RevenueCat" />
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {FILTERS.map((f) => (
@@ -51,19 +51,19 @@ export default async function SubscriptionsPage({
         <Table>
           <THead>
             <TR>
-              <TH>Member</TH>
-              <TH>Entitlement</TH>
-              <TH>Status</TH>
-              <TH>Store</TH>
-              <TH>Renews</TH>
-              <TH>Expires</TH>
+              <TH>Membre</TH>
+              <TH>Droit d'accès</TH>
+              <TH>Statut</TH>
+              <TH>Boutique</TH>
+              <TH>Renouvellement</TH>
+              <TH>Expiration</TH>
             </TR>
           </THead>
           <TBody>
             {subs.length === 0 && (
               <TR>
                 <TD colSpan={6} className="py-10 text-center text-neutral-400">
-                  No subscriptions.
+                  Aucun abonnement.
                 </TD>
               </TR>
             )}

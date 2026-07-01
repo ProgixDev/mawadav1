@@ -39,7 +39,7 @@ export async function sendMatchRequest(
     maleUserId = candidateId;
     femaleUserId = seekerId;
   } else {
-    return { ok: false, error: "Both members must have opposite, known genders." };
+    return { ok: false, error: "Les deux membres doivent avoir des genres opposés et connus." };
   }
 
   // One-to-one exclusivity: neither person may already be in a confirmed match.
@@ -54,7 +54,7 @@ export async function sendMatchRequest(
   if (confirmed && confirmed.length > 0) {
     return {
       ok: false,
-      error: "One of these members is already in a confirmed match.",
+      error: "L'un de ces membres est déjà engagé dans un jumelage confirmé.",
     };
   }
 
@@ -94,11 +94,11 @@ export async function sendMatchRequest(
 
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: "A pending request already exists for this pair." };
+      return { ok: false, error: "Une demande est déjà en attente pour cette paire." };
     }
     // Raised by the matches_enforce_exclusivity() trigger.
     if (error.code === "P0001" || /already in a confirmed match/i.test(error.message)) {
-      return { ok: false, error: "One of these members is already in a confirmed match." };
+      return { ok: false, error: "L'un de ces membres est déjà engagé dans un jumelage confirmé." };
     }
     return { ok: false, error: error.message };
   }
@@ -150,10 +150,30 @@ export async function endMatch(
     return { ok: false, error: error.message };
   }
   if (!data || data.length === 0) {
-    return { ok: false, error: "Match is not in a confirmed state." };
+    return { ok: false, error: "Le jumelage n'est pas dans un état confirmé." };
   }
 
   revalidatePath("/matches");
   revalidatePath("/matching");
+  return { ok: true };
+}
+
+// Approve or reject a match's mahram step ON BEHALF of the guardian, from the
+// dashboard. Calls the same RPC the mahram's mobile app uses (service-role is
+// allowed by the function). On approval the direct male<->female conversation
+// is opened and chat/calls unlock; on rejection everything stays locked.
+export async function mahramRespondAsAdmin(
+  matchId: string,
+  response: "approved" | "rejected",
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("mahram_respond_to_match", {
+    p_match_id: matchId,
+    p_response: response,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/matches");
   return { ok: true };
 }

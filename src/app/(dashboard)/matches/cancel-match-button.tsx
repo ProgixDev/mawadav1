@@ -14,7 +14,7 @@ export function CancelMatchButton({ matchId }: { matchId: string }) {
       disabled={pending}
       onClick={() => startTransition(async () => { await cancelMatch(matchId); })}
     >
-      Cancel
+      Annuler
     </Button>
   );
 }

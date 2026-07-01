@@ -1,8 +1,9 @@
 // TypeScript mirror of the Supabase schema shared with the Flutter mobile app.
 // Column names match the Dart models exactly (snake_case).
 
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "admin" | "super_admin" | "mahram";
 export type UserStatus = "onboarding" | "active" | "suspended" | "deleted";
+export type MahramStatus = "pending" | "approved" | "rejected";
 export type AdminStatus = "new" | "in_contact" | "paused";
 export type MessageModerationStatus = "ok" | "flagged" | "removed";
 export type SubscriptionStatus = "active" | "expired" | "trial" | "canceled";
@@ -15,7 +16,8 @@ export type MatchStatus =
   | "declined"
   | "expired"
   | "cancelled"
-  | "ended";
+  | "ended"
+  | "rejected";
 export type MatchResponse = "pending" | "accepted" | "declined";
 
 export interface UserRow {
@@ -40,6 +42,8 @@ export interface ProfileRow {
   nationality: string | null;
   practice_level: string | null;
   madhhab: string | null;
+  prayer_frequency: string | null;
+  wears_hijab: boolean | null;
   marital_status: string | null;
   has_children: boolean | null;
   num_children: number | null;
@@ -167,8 +171,27 @@ export interface MatchRow {
   female_responded_at: string | null;
   expires_at: string | null;
   mahram_delivered: boolean | null;
+  mahram_status: MahramStatus;
   created_at: string;
   updated_at: string;
+}
+
+export interface NotificationRow {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string | null;
+  body: string | null;
+  data: Record<string, unknown> | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface MahramLinkRow {
+  id: string;
+  mahram_user_id: string;
+  female_user_id: string;
+  created_at: string | null;
 }
 
 // Convenience composite used by the Users detail view.

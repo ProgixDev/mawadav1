@@ -70,7 +70,7 @@ function CandidateCard({
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold text-neutral-900">{c.name}</h3>
               <span className="text-xs text-neutral-400">
-                {c.age != null ? `${c.age} yrs` : "—"} ·{" "}
+                {c.age != null ? `${c.age} ans` : "—"} ·{" "}
                 {[c.city, c.country].filter(Boolean).join(", ") || "—"}
               </span>
             </div>
@@ -103,7 +103,7 @@ function CandidateCard({
         <details className="group mt-3">
           <summary className="flex cursor-pointer items-center gap-1 text-xs font-medium text-neutral-500 hover:text-neutral-700">
             <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
-            Score breakdown ({c.name} as candidate)
+            Détail du score ({c.name} comme candidat)
           </summary>
           <div className="mt-2 divide-y divide-neutral-100 border-t border-neutral-100 pt-1">
             {primary.criteria.map((cr: CriterionScore) => (
@@ -146,7 +146,7 @@ async function CandidatePanel({ memberId }: { memberId: string }) {
     return (
       <Card>
         <CardContent className="py-16 text-center text-sm text-neutral-500">
-          This member has no profile yet — nothing to match on.
+          Ce membre n'a pas encore de profil — aucun critère de jumelage disponible.
         </CardContent>
       </Card>
     );
@@ -160,8 +160,8 @@ async function CandidatePanel({ memberId }: { memberId: string }) {
         <Card className="mb-4 border-emerald-200 bg-emerald-50">
           <CardContent className="flex items-center gap-2 py-4 text-sm text-emerald-800">
             <HeartHandshake className="h-4 w-4 shrink-0" />
-            {ranked.member.name} is already in a confirmed match and can&apos;t
-            receive new requests.
+            {ranked.member.name} est déjà engagé(e) dans un jumelage confirmé et
+            ne peut pas recevoir de nouvelles demandes.
           </CardContent>
         </Card>
       )}
@@ -169,17 +169,17 @@ async function CandidatePanel({ memberId }: { memberId: string }) {
       <div className="space-y-4">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-semibold text-neutral-900">
-            Candidates for {ranked.member.name}
+            Candidats pour {ranked.member.name}
           </h2>
           <span className="text-sm text-neutral-400">
-            {ranked.candidates.filter((c) => c.result.mutualPass).length} compatible ·{" "}
-            {ranked.candidates.length} total
+            {ranked.candidates.filter((c) => c.result.mutualPass).length} compatibles ·{" "}
+            {ranked.candidates.length} au total
           </span>
         </div>
         {ranked.candidates.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-sm text-neutral-500">
-              No eligible candidates found.
+              Aucun candidat admissible trouvé.
             </CardContent>
           </Card>
         ) : (
@@ -209,15 +209,15 @@ export default async function MatchingPage({
   return (
     <div>
       <PageHeader
-        title="Matching"
-        description="Semi-automatic matchmaking — pick a member, review scored candidates, then introduce."
+        title="Mise en relation"
+        description="Mise en relation semi-automatique — sélectionnez un membre, examinez les candidats notés, puis présentez-les."
       />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[20rem_1fr]">
         <Card className="lg:h-[calc(100vh-12rem)]">
           <CardContent className="flex h-full flex-col pt-5">
             <h2 className="mb-3 text-sm font-semibold text-neutral-900">
-              Members ({members.length})
+              Membres ({members.length})
             </h2>
             <MemberPicker members={members} selectedId={memberId} />
           </CardContent>
@@ -231,10 +231,10 @@ export default async function MatchingPage({
                   <HeartHandshake className="h-8 w-8" />
                 </div>
                 <div className="max-w-md">
-                  <h2 className="text-lg font-semibold text-neutral-900">Select a member</h2>
+                  <h2 className="text-lg font-semibold text-neutral-900">Sélectionnez un membre</h2>
                   <p className="mt-2 text-sm text-neutral-500">
-                    Choose a member on the left to score every eligible candidate against their
-                    profile and partner preferences.
+                    Choisissez un membre à gauche pour évaluer chaque candidat admissible en fonction
+                    de son profil et de ses préférences de partenaire.
                   </p>
                 </div>
               </CardContent>

@@ -19,7 +19,7 @@ export function EndMatchButton({ matchId }: { matchId: string }) {
         onClick={() => {
           if (
             !confirm(
-              "End this match? Both members will be freed to receive new match requests. This can't be undone.",
+              "Mettre fin à ce jumelage ? Les deux membres pourront de nouveau recevoir des demandes de jumelage. Cette action est irréversible.",
             )
           ) {
             return;
@@ -32,7 +32,7 @@ export function EndMatchButton({ matchId }: { matchId: string }) {
           });
         }}
       >
-        {pending ? "Ending…" : "End match"}
+        {pending ? "Fin en cours…" : "Mettre fin au jumelage"}
       </Button>
       {error && <p className="max-w-48 text-right text-xs text-red-600">{error}</p>}
     </div>

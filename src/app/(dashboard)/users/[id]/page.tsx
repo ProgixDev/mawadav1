@@ -3,17 +3,20 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MessagesSquare } from "lucide-react";
 import { getUserDetail } from "@/lib/data/users";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserStatusBadge } from "@/components/dashboard/status-badges";
-import { UserStatusActions } from "./user-actions";
+import { UserStatusActions, UserRoleActions } from "./user-actions";
 import { fullName, formatDate, age, initials } from "@/lib/format";
 import {
   DIMENSION_LABELS,
   IMPORTANCE_LABELS,
   LIFESTYLE_LABELS,
   LIFESTYLE_ANSWER_LABELS,
+  ROLE_LABELS,
+  PRAYER_LABELS,
 } from "@/lib/matching/labels";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +32,7 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 function yesNo(v: boolean | null | undefined): string {
   if (v === null || v === undefined) return "—";
-  return v ? "Yes" : "No";
+  return v ? "Oui" : "Non";
 }
 
 function importanceVariant(v: string): "red" | "amber" | "default" {
@@ -44,6 +47,7 @@ export default async function UserDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const viewer = await requireAdmin();
   const user = await getUserDetail(id);
   if (!user) notFound();
 
@@ -71,7 +75,7 @@ export default async function UserDetailPage({
         href="/users"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to users
+        <ArrowLeft className="h-4 w-4" /> Retour aux membres
       </Link>
 
       <PageHeader title={fullName(p?.first_name, p?.last_name)}>
@@ -96,62 +100,77 @@ export default async function UserDetailPage({
               </div>
             </div>
             <dl className="mt-4 divide-y divide-neutral-100">
-              <Field label="Email" value={user.email} />
-              <Field label="Phone" value={user.phone} />
-              <Field label="Role" value={<span className="capitalize">{user.role}</span>} />
+              <Field label="Courriel" value={user.email} />
+              <Field label="Téléphone" value={user.phone} />
+              <Field label="Rôle" value={ROLE_LABELS[user.role] ?? user.role} />
               <Field
-                label="Age"
-                value={age(p?.birthdate) ? `${age(p?.birthdate)} yrs` : "—"}
+                label="Âge"
+                value={age(p?.birthdate) ? `${age(p?.birthdate)} ans` : "—"}
               />
-              <Field label="Gender" value={<span className="capitalize">{p?.gender}</span>} />
+              <Field label="Genre" value={<span className="capitalize">{p?.gender}</span>} />
               <Field
-                label="Location"
+                label="Localisation"
                 value={[p?.city, p?.country].filter(Boolean).join(", ")}
               />
-              <Field label="Joined" value={formatDate(user.created_at)} />
+              <Field label="Inscription" value={formatDate(user.created_at)} />
             </dl>
             {conv && (
               <Link
                 href={`/conversations/${conv.id}`}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90"
               >
-                <MessagesSquare className="h-4 w-4" /> Open conversation
+                <MessagesSquare className="h-4 w-4" /> Ouvrir la conversation
               </Link>
             )}
           </CardContent>
         </Card>
 
         <div className="lg:col-span-2 flex flex-col gap-4">
+          {/* Role management */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Rôle &amp; permissions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm text-neutral-600">
+                  Rôle actuel : <span className="font-medium text-neutral-900">{ROLE_LABELS[user.role] ?? user.role}</span>
+                </p>
+                <UserRoleActions userId={user.id} role={user.role} viewerRole={viewer.role} />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Profile details */}
           <Card>
             <CardHeader>
-              <CardTitle>Profile</CardTitle>
+              <CardTitle>Profil</CardTitle>
             </CardHeader>
             <CardContent>
               {p ? (
                 <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                  <Field label="Nationality" value={p.nationality} />
-                  <Field label="Marital status" value={p.marital_status} />
-                  <Field label="Has children" value={yesNo(p.has_children)} />
-                  <Field label="Number of children" value={p.num_children ?? "—"} />
-                  <Field label="Education" value={p.education_level} />
+                  <Field label="Nationalité" value={p.nationality} />
+                  <Field label="Situation matrimoniale" value={p.marital_status} />
+                  <Field label="A des enfants" value={yesNo(p.has_children)} />
+                  <Field label="Nombre d'enfants" value={p.num_children ?? "—"} />
+                  <Field label="Niveau d'études" value={p.education_level} />
                   <Field label="Profession" value={p.profession} />
-                  <Field label="Height" value={p.height_cm ? `${p.height_cm} cm` : "—"} />
-                  <Field label="Languages" value={p.languages?.join(", ")} />
-                  <Field label="Smoking" value={p.smoking_status} />
-                  <Field label="Wants children" value={yesNo(p.wants_children)} />
-                  <Field label="Income range" value={p.income_range} />
-                  <Field label="Willing to relocate" value={yesNo(p.willing_to_relocate)} />
-                  <Field label="Visibility" value={p.visibility} />
+                  <Field label="Taille" value={p.height_cm ? `${p.height_cm} cm` : "—"} />
+                  <Field label="Langues" value={p.languages?.join(", ")} />
+                  <Field label="Tabagisme" value={p.smoking_status} />
+                  <Field label="Souhaite des enfants" value={yesNo(p.wants_children)} />
+                  <Field label="Tranche de revenus" value={p.income_range} />
+                  <Field label="Prêt à déménager" value={yesNo(p.willing_to_relocate)} />
+                  <Field label="Visibilité" value={p.visibility} />
                   <div className="sm:col-span-2">
-                    <Field label="About" value={p.about_me} />
+                    <Field label="À propos" value={p.about_me} />
                   </div>
                   <div className="sm:col-span-2">
-                    <Field label="Marriage goals" value={p.marriage_goals} />
+                    <Field label="Objectifs de mariage" value={p.marriage_goals} />
                   </div>
                 </dl>
               ) : (
-                <p className="text-sm text-neutral-400">No profile yet (still onboarding).</p>
+                <p className="text-sm text-neutral-400">Aucun profil pour le moment (intégration en cours).</p>
               )}
             </CardContent>
           </Card>
@@ -160,14 +179,21 @@ export default async function UserDetailPage({
           {p && (
             <Card>
               <CardHeader>
-                <CardTitle>Religious profile</CardTitle>
+                <CardTitle>Profil religieux</CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                  <Field label="Practice level" value={p.practice_level} />
+                  <Field label="Niveau de pratique" value={p.practice_level} />
+                  <Field
+                    label="Prière"
+                    value={p.prayer_frequency ? PRAYER_LABELS[p.prayer_frequency] ?? p.prayer_frequency : "—"}
+                  />
+                  {p.gender === "female" && (
+                    <Field label="Porte le hijab" value={yesNo(p.wears_hijab)} />
+                  )}
                   <Field label="Madhhab" value={p.madhhab} />
-                  <Field label="Qur'an level" value={p.quran_level} />
-                  <Field label="Islamic education" value={p.islamic_education_level} />
+                  <Field label="Niveau de Coran" value={p.quran_level} />
+                  <Field label="Éducation islamique" value={p.islamic_education_level} />
                 </dl>
               </CardContent>
             </Card>
@@ -176,22 +202,22 @@ export default async function UserDetailPage({
           {/* Partner preferences */}
           <Card>
             <CardHeader>
-              <CardTitle>Partner preferences</CardTitle>
+              <CardTitle>Préférences de partenaire</CardTitle>
             </CardHeader>
             <CardContent>
               {prefs ? (
                 <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
                   <Field
-                    label="Age range"
+                    label="Tranche d'âge"
                     value={`${prefs.min_age ?? "?"} – ${prefs.max_age ?? "?"}`}
                   />
-                  <Field label="Wants children" value={yesNo(prefs.wants_children)} />
-                  <Field label="Min practice level" value={prefs.min_practice_level} />
-                  <Field label="Willing to relocate" value={yesNo(prefs.willing_to_relocate)} />
-                  <Field label="Marriage timeline" value={prefs.marriage_timeline} />
+                  <Field label="Souhaite des enfants" value={yesNo(prefs.wants_children)} />
+                  <Field label="Niveau de pratique minimal" value={prefs.min_practice_level} />
+                  <Field label="Prêt à déménager" value={yesNo(prefs.willing_to_relocate)} />
+                  <Field label="Échéance de mariage" value={prefs.marriage_timeline} />
                 </dl>
               ) : (
-                <p className="text-sm text-neutral-400">No preferences set.</p>
+                <p className="text-sm text-neutral-400">Aucune préférence définie.</p>
               )}
             </CardContent>
           </Card>
@@ -200,7 +226,7 @@ export default async function UserDetailPage({
           {importanceEntries.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Preference importance</CardTitle>
+                <CardTitle>Importance des préférences</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="flex flex-col divide-y divide-neutral-100">
@@ -226,7 +252,7 @@ export default async function UserDetailPage({
           {lifestyleEntries.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Lifestyle &amp; personality</CardTitle>
+                <CardTitle>Mode de vie &amp; personnalité</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="flex flex-col divide-y divide-neutral-100">
@@ -260,15 +286,15 @@ export default async function UserDetailPage({
           {mahram && (
             <Card>
               <CardHeader>
-                <CardTitle>Mahram (guardian)</CardTitle>
+                <CardTitle>Mahram (tuteur)</CardTitle>
               </CardHeader>
               <CardContent>
                 <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                  <Field label="Full name" value={mahram.full_name} />
-                  <Field label="Relationship" value={mahram.relationship} />
-                  <Field label="Phone" value={mahram.phone_number} />
+                  <Field label="Nom complet" value={mahram.full_name} />
+                  <Field label="Lien de parenté" value={mahram.relationship} />
+                  <Field label="Téléphone" value={mahram.phone_number} />
                   <Field
-                    label="Location"
+                    label="Localisation"
                     value={[mahram.city, mahram.country].filter(Boolean).join(", ")}
                   />
                 </dl>

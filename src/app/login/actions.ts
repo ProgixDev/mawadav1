@@ -15,14 +15,14 @@ export async function signIn(
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    return { error: "Email and password are required." };
+    return { error: "L’adresse courriel et le mot de passe sont requis." };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    return { error: error?.message ?? "Invalid credentials." };
+    return { error: error?.message ?? "Identifiants invalides." };
   }
 
   // Enforce admin-only access to the dashboard.
@@ -33,9 +33,9 @@ export async function signIn(
     .eq("id", data.user.id)
     .single<Pick<UserRow, "role">>();
 
-  if (row?.role !== "admin") {
+  if (row?.role !== "admin" && row?.role !== "super_admin") {
     await supabase.auth.signOut();
-    return { error: "This account is not an administrator." };
+    return { error: "Ce compte n’est pas un administrateur." };
   }
 
   redirect("/dashboard");

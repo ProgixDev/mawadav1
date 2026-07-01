@@ -8,12 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import type { MatchStatus } from "@/lib/types/database";
 
 const STATUS_BADGE: Record<MatchStatus, { variant: "green" | "blue" | "amber" | "red" | "default"; label: string }> = {
-  pending: { variant: "amber", label: "Pending" },
-  matched: { variant: "green", label: "Matched" },
-  declined: { variant: "red", label: "Declined" },
-  expired: { variant: "default", label: "Expired" },
-  cancelled: { variant: "default", label: "Cancelled" },
-  ended: { variant: "amber", label: "Ended" },
+  pending: { variant: "amber", label: "En attente" },
+  matched: { variant: "green", label: "Jumelé" },
+  declined: { variant: "red", label: "Refusé" },
+  expired: { variant: "default", label: "Expiré" },
+  cancelled: { variant: "default", label: "Annulé" },
+  ended: { variant: "amber", label: "Terminé" },
+  rejected: { variant: "red", label: "Rejeté (mahram)" },
 };
 
 export function SendRequestButton({
@@ -41,13 +42,13 @@ export function SendRequestButton({
   }
 
   if (unavailable) {
-    return <Badge variant="default">Already in a match</Badge>;
+    return <Badge variant="default">Déjà jumelé</Badge>;
   }
 
   if (sent) {
     return (
       <Badge variant="amber" className="flex items-center gap-1">
-        <Check className="h-3 w-3" /> Request sent
+        <Check className="h-3 w-3" /> Demande envoyée
       </Badge>
     );
   }
@@ -65,7 +66,7 @@ export function SendRequestButton({
     <div className="flex flex-col items-end gap-1">
       <Button variant="outline" size="sm" disabled={pending || disabled} onClick={send}>
         <Send className="h-3.5 w-3.5" />
-        Send match request
+        Envoyer la demande de jumelage
       </Button>
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

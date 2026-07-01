@@ -41,7 +41,7 @@ export function SignupsChart({ data }: { data: { date: string; count: number }[]
 export function DonutChart({ data }: { data: { name: string; value: number }[] }) {
   const filtered = data.filter((d) => d.value > 0);
   if (filtered.length === 0) {
-    return <div className="flex h-[220px] items-center justify-center text-sm text-neutral-400">No data</div>;
+    return <div className="flex h-[220px] items-center justify-center text-sm text-neutral-400">Aucune donnée</div>;
   }
   return (
     <ResponsiveContainer width="100%" height={220}>

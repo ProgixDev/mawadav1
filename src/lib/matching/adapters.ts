@@ -62,6 +62,8 @@ export function toProfileInput(p: ProfileRow | null): MatchProfileInput {
     gender: p?.gender ?? null,
     age: age(p?.birthdate ?? null),
     practiceLevel: p?.practice_level ?? null,
+    prayerFrequency: p?.prayer_frequency ?? null,
+    wearsHijab: p?.wears_hijab ?? null,
     maritalStatus: p?.marital_status ?? null,
     hasChildren: p?.has_children ?? false,
     educationLevel: p?.education_level ?? null,

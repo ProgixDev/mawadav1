@@ -14,7 +14,7 @@ export default async function LoginPage() {
             M
           </div>
           <h1 className="text-xl font-semibold text-neutral-900">MAWADA Admin</h1>
-          <p className="mt-1 text-sm text-neutral-500">Sign in to the admin dashboard</p>
+          <p className="mt-1 text-sm text-neutral-500">Connectez-vous au tableau de bord d’administration</p>
         </div>
         <LoginForm />
       </div>

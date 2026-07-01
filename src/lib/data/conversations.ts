@@ -72,6 +72,36 @@ export async function listConversations(
   }));
 }
 
+// Inbox badge: number of *clients* (conversations) that have at least one
+// unread message from the member — counted per conversation, NOT per message.
+// So a client who sent five unread messages counts once.
+export async function countUnreadConversations(): Promise<number> {
+  const admin = createAdminClient();
+
+  const { data: convs } = await admin
+    .from("conversations")
+    .select("id, user_id")
+    .limit(1000);
+  const conversations = (convs ?? []) as Pick<ConversationRow, "id" | "user_id">[];
+  if (conversations.length === 0) return 0;
+
+  const userById = new Map(conversations.map((c) => [c.id, c.user_id]));
+
+  const { data: messages } = await admin
+    .from("messages")
+    .select("conversation_id, sender_id, read_at")
+    .in("conversation_id", Array.from(userById.keys()))
+    .is("read_at", null);
+
+  const withUnread = new Set<string>();
+  for (const m of messages ?? []) {
+    const cid = m.conversation_id as string;
+    // Only the member's own messages count as unread for the admin.
+    if (m.sender_id === userById.get(cid)) withUnread.add(cid);
+  }
+  return withUnread.size;
+}
+
 export interface ConversationDetail {
   conversation: ConversationRow;
   user: Pick<UserRow, "id" | "email" | "status">;

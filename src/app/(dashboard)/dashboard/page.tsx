@@ -17,36 +17,36 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Overview" description="Key metrics across the platform" />
+      <PageHeader title="Vue d’ensemble" description="Indicateurs clés de la plateforme" />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
-          label="Total users"
+          label="Total des utilisateurs"
           value={stats.totalUsers}
           icon={Users}
           accent="brand"
-          hint={`${stats.activeUsers} active · ${stats.onboardingUsers} onboarding`}
+          hint={`${stats.activeUsers} actifs · ${stats.onboardingUsers} en intégration`}
         />
         <StatCard
-          label="Active subscriptions"
+          label="Abonnements actifs"
           value={stats.activeSubscriptions}
           icon={CreditCard}
           accent="blue"
-          hint={`${stats.trialSubscriptions} on trial`}
+          hint={`${stats.trialSubscriptions} en période d’essai`}
         />
         <StatCard
           label="Conversations"
           value={stats.totalConversations}
           icon={MessagesSquare}
           accent="brand"
-          hint={`${stats.openConversations} new / unassigned`}
+          hint={`${stats.openConversations} nouvelles / non attribuées`}
         />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>New sign-ups (last 14 days)</CardTitle>
+            <CardTitle>Nouvelles inscriptions (14 derniers jours)</CardTitle>
           </CardHeader>
           <CardContent>
             <SignupsChart data={stats.signupsByDay} />
@@ -55,7 +55,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Users by status</CardTitle>
+            <CardTitle>Utilisateurs par statut</CardTitle>
           </CardHeader>
           <CardContent>
             <DonutChart data={stats.usersByStatus} />
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Gender split</CardTitle>
+            <CardTitle>Répartition par genre</CardTitle>
           </CardHeader>
           <CardContent>
             <DonutChart data={stats.genderSplit} />
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Subscriptions</CardTitle>
+            <CardTitle>Abonnements</CardTitle>
           </CardHeader>
           <CardContent>
             <StatusBarChart data={stats.subscriptionsByStatus} />
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Conversations by stage</CardTitle>
+            <CardTitle>Conversations par étape</CardTitle>
           </CardHeader>
           <CardContent>
             <StatusBarChart data={stats.conversationsByAdminStatus} />

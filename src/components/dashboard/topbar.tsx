@@ -14,13 +14,13 @@ export function Topbar({ admin }: { admin: UserRow }) {
       <div className="ml-auto flex items-center gap-4">
         <div className="text-right">
           <p className="text-sm font-medium text-neutral-900">{admin.email}</p>
-          <p className="text-xs text-neutral-500">Administrator</p>
+          <p className="text-xs text-neutral-500">Administrateur</p>
         </div>
         <form action={signOut}>
           <button
             type="submit"
             className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
-            title="Sign out"
+            title="Se déconnecter"
           >
             <LogOut className="h-4 w-4" />
           </button>

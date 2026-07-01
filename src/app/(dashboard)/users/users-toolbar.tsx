@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const STATUSES = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "onboarding", label: "Onboarding" },
-  { value: "suspended", label: "Suspended" },
-  { value: "deleted", label: "Deleted" },
+  { value: "all", label: "Tous" },
+  { value: "active", label: "Actifs" },
+  { value: "onboarding", label: "Intégration" },
+  { value: "suspended", label: "Suspendus" },
+  { value: "deleted", label: "Supprimés" },
 ];
 
 export function UsersToolbar({
@@ -46,7 +46,7 @@ export function UsersToolbar({
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by email…"
+          placeholder="Rechercher par courriel…"
           className="pl-9"
         />
       </form>

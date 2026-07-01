@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { listConversations, type ConversationListItem } from "@/lib/data/conversations";
+import {
+  listConversations,
+  countUnreadConversations,
+  type ConversationListItem,
+} from "@/lib/data/conversations";
+import { translateToFrench, TranslationError } from "@/lib/translate";
 import type { AdminStatus, MessageRow, MessageModerationStatus } from "@/lib/types/database";
 
 // Used by the conversations list as a realtime refresh: re-runs the same
@@ -16,6 +21,13 @@ export async function fetchConversations(
   return listConversations(status);
 }
 
+// Sidebar inbox badge: count of clients with unread messages (per client, not
+// per message). Re-run on realtime events so the badge stays live.
+export async function fetchUnreadConversationCount(): Promise<number> {
+  await requireAdmin();
+  return countUnreadConversations();
+}
+
 // Admin sends a message into a user's conversation. Uses the service-role client
 // so it works regardless of the user-scoped RLS. Also claims the conversation
 // (sets admin_id + moves it to "in_contact") on first admin reply.
@@ -25,7 +37,7 @@ export async function sendAdminMessage(
 ): Promise<MessageRow> {
   const adminUser = await requireAdmin();
   const trimmed = body.trim();
-  if (!trimmed) throw new Error("Message is empty.");
+  if (!trimmed) throw new Error("Le message est vide.");
 
   const admin = createAdminClient();
   const now = new Date().toISOString();
@@ -40,7 +52,7 @@ export async function sendAdminMessage(
     })
     .select("*")
     .single<MessageRow>();
-  if (error || !message) throw new Error(error?.message ?? "Failed to send.");
+  if (error || !message) throw new Error(error?.message ?? "Échec de l'envoi.");
 
   await admin
     .from("conversations")
@@ -91,6 +103,22 @@ export async function fetchMessages(conversationId: string): Promise<MessageRow[
     .eq("conversation_id", conversationId)
     .order("created_at", { ascending: true });
   return (data ?? []) as MessageRow[];
+}
+
+// On-demand translation of a member's message to French (Gemini-backed).
+// Returns a friendly error string instead of throwing so the chat UI can show
+// it inline without breaking.
+export async function translateMessage(
+  text: string,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  await requireAdmin();
+  try {
+    return { ok: true, text: await translateToFrench(text) };
+  } catch (e) {
+    const error =
+      e instanceof TranslationError ? e.message : "Traduction indisponible.";
+    return { ok: false, error };
+  }
 }
 
 export async function setMessageModeration(

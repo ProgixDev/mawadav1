@@ -17,6 +17,7 @@ import {
   LIFESTYLE_QUESTIONS,
   MAX_SCORE,
   PRACTICE_SCALE,
+  PRAYER_SCALE,
   RED_FLAGS,
   TIMELINE_SCALE,
   WANTS_CHILDREN_MATRIX,
@@ -132,6 +133,34 @@ function practice(party: MatchParty, candidate: MatchParty): Scored {
     return ok("practice", "Practice level", "hard", 12, `Meets minimum (${candidate.profile.practiceLevel})`);
   }
   return hard("practice", "Practice level", 12, `Below minimum practice level (${party.prefs.minPracticeLevel})`);
+}
+
+// Prayer compatibility (religious criterion, significant weight). Scored only
+// when BOTH partners stated a prayer habit — otherwise neutral (0/0), so it
+// never penalises profiles created before this field existed. Closer prayer
+// habits score higher; a regular-vs-never gap scores nothing.
+function prayer(party: MatchParty, candidate: MatchParty): Scored {
+  const seeker = scaleValue(PRAYER_SCALE, party.profile.prayerFrequency);
+  const cand = scaleValue(PRAYER_SCALE, candidate.profile.prayerFrequency);
+  if (seeker == null || cand == null) {
+    return { criterion: { key: "prayer", label: "Prayer", priority: "soft", points: 0, maxPoints: 0, detail: "Not stated" } };
+  }
+  const diff = Math.abs(seeker - cand);
+  const pts = diff === 0 ? 12 : diff === 1 ? 6 : 0;
+  return soft("prayer", "Prayer", 12, pts, `${candidate.profile.prayerFrequency} vs ${party.profile.prayerFrequency}`);
+}
+
+// Hijab (religious criterion). Only meaningful when the CANDIDATE is a woman who
+// stated whether she wears the hijab — otherwise neutral (0/0). Wearing the
+// hijab scores full; not wearing scores partial. A seeker who marks hijab as
+// important / must-have escalates this via the importance system.
+function hijab(_party: MatchParty, candidate: MatchParty): Scored {
+  if (norm(candidate.profile.gender) !== "female" || candidate.profile.wearsHijab == null) {
+    return { criterion: { key: "hijab", label: "Hijab", priority: "soft", points: 0, maxPoints: 0, detail: "Not applicable" } };
+  }
+  return candidate.profile.wearsHijab
+    ? soft("hijab", "Hijab", 8, 8, "Wears the hijab")
+    : soft("hijab", "Hijab", 8, 3, "Does not wear the hijab");
 }
 
 function maritalStatus(party: MatchParty, candidate: MatchParty): Scored {
@@ -464,6 +493,8 @@ export function scoreMatch(seeker: MatchParty, candidate: MatchParty): MatchResu
     genderGate(seeker, candidate),
     age(seeker, candidate),
     practice(seeker, candidate),
+    prayer(seeker, candidate),
+    hijab(seeker, candidate),
     maritalStatus(seeker, candidate),
     hasChildren(seeker, candidate),
     wantsChildren(seeker, candidate),
@@ -484,7 +515,12 @@ export function scoreMatch(seeker: MatchParty, candidate: MatchParty): MatchResu
   // Gender is always a hard gate; every other criterion can be re-weighted by
   // the seeker's importance choices. Lifestyle questions are appended.
   const scored: Scored[] = [
-    ...natural.map((s) => (s.criterion.key === "gender" ? s : applyImportance(seeker, s))),
+    // Gender is a fixed gate; not-applicable criteria (maxPoints 0, e.g. prayer
+    // or hijab with no data) are left untouched so importance can't turn missing
+    // data into a hard failure.
+    ...natural.map((s) =>
+      s.criterion.key === "gender" || s.criterion.maxPoints === 0 ? s : applyImportance(seeker, s),
+    ),
     ...lifestyleScored(seeker, candidate),
   ];
 

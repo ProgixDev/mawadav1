@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, User } from "lucide-react";
 import { getConversationDetail } from "@/lib/data/conversations";
+import { getUserDetail } from "@/lib/data/users";
 import { requireAdmin } from "@/lib/auth";
 import { ChatPanel } from "./chat-panel";
 import { ConversationControls } from "./conversation-controls";
+import { ProfilePanel } from "./profile-panel";
 import { fullName } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +21,8 @@ export default async function ConversationPage({
   const detail = await getConversationDetail(id);
   if (!detail) notFound();
 
+  // Full profile for the clickable name → side drawer.
+  const fullUser = await getUserDetail(detail.user.id);
   const name = fullName(detail.profile?.first_name, detail.profile?.last_name);
 
   return (
@@ -35,7 +39,11 @@ export default async function ConversationPage({
             {name[0]?.toUpperCase() ?? "?"}
           </span>
           <div>
-            <h1 className="font-semibold text-neutral-900">{name}</h1>
+            {fullUser ? (
+              <ProfilePanel user={fullUser} />
+            ) : (
+              <h1 className="font-semibold text-neutral-900">{name}</h1>
+            )}
             <p className="text-xs text-neutral-500">
               {detail.profile?.gender && (
                 <span className="capitalize">{detail.profile.gender} · </span>
@@ -50,7 +58,7 @@ export default async function ConversationPage({
             href={`/users/${detail.user.id}`}
             className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-700 hover:bg-neutral-50"
           >
-            <User className="h-4 w-4" /> Profile
+            <User className="h-4 w-4" /> Profil
           </Link>
           <ConversationControls
             conversationId={id}

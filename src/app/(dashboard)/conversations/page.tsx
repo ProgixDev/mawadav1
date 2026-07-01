@@ -7,10 +7,10 @@ import { ConversationsList } from "./conversations-list";
 export const dynamic = "force-dynamic";
 
 const FILTERS = [
-  { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "in_contact", label: "In contact" },
-  { value: "paused", label: "Paused" },
+  { value: "all", label: "Toutes" },
+  { value: "new", label: "Nouvelles" },
+  { value: "in_contact", label: "En contact" },
+  { value: "paused", label: "En pause" },
 ];
 
 export default async function ConversationsPage({
@@ -26,7 +26,7 @@ export default async function ConversationsPage({
     <div>
       <PageHeader
         title="Conversations"
-        description="Concierge inbox — chat with members and manage their journey"
+        description="Boîte de réception conciergerie — échangez avec les membres et accompagnez leur parcours"
       />
 
       <div className="mb-4 flex flex-wrap gap-1.5">

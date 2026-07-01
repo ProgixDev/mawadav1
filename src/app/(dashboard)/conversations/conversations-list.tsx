@@ -90,7 +90,7 @@ export function ConversationsList({
   return (
     <Card className="divide-y divide-neutral-100">
       {conversations.length === 0 && (
-        <div className="py-12 text-center text-sm text-neutral-400">No conversations.</div>
+        <div className="py-12 text-center text-sm text-neutral-400">Aucune conversation.</div>
       )}
       {conversations.map((c) => (
         <Link
@@ -107,10 +107,14 @@ export function ConversationsList({
                 {fullName(c.firstName, c.lastName)}
               </p>
               <AdminStatusBadge status={c.admin_status} />
-              {c.unreadCount > 0 && <Badge variant="red">{c.unreadCount} new</Badge>}
+              {c.unreadCount > 0 && (
+                <Badge variant="red">
+                  {c.unreadCount} {c.unreadCount === 1 ? "nouveau" : "nouveaux"}
+                </Badge>
+              )}
             </div>
             <p className="truncate text-sm text-neutral-500">
-              {c.lastMessageBody ?? "No messages yet"}
+              {c.lastMessageBody ?? "Aucun message pour le moment"}
             </p>
           </div>
           <span className="shrink-0 text-xs text-neutral-400">

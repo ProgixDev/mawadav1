@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils";
 import type { AdminStatus } from "@/lib/types/database";
 
 const OPTIONS: { value: AdminStatus; label: string }[] = [
-  { value: "new", label: "New" },
-  { value: "in_contact", label: "In contact" },
-  { value: "paused", label: "Paused" },
+  { value: "new", label: "Nouvelle" },
+  { value: "in_contact", label: "En contact" },
+  { value: "paused", label: "En pause" },
 ];
 
 export function ConversationControls({

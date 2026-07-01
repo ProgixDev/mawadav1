@@ -7,22 +7,24 @@ import { Badge } from "@/components/ui/badge";
 import {
   MatchStatusBadge,
   MatchResponseBadge,
+  MahramStatusBadge,
 } from "@/components/dashboard/status-badges";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CancelMatchButton } from "./cancel-match-button";
 import { EndMatchButton } from "./end-match-button";
+import { MahramApprovalButtons } from "./mahram-approval-buttons";
 
 export const dynamic = "force-dynamic";
 
 const FILTERS = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Sent" },
-  { value: "matched", label: "Matched" },
-  { value: "declined", label: "Declined" },
-  { value: "expired", label: "Expired" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "ended", label: "Ended" },
+  { value: "all", label: "Tous" },
+  { value: "pending", label: "Envoyés" },
+  { value: "matched", label: "Jumelés" },
+  { value: "declined", label: "Refusés" },
+  { value: "expired", label: "Expirés" },
+  { value: "cancelled", label: "Annulés" },
+  { value: "ended", label: "Terminés" },
 ];
 
 export default async function MatchesPage({
@@ -37,8 +39,8 @@ export default async function MatchesPage({
   return (
     <div>
       <PageHeader
-        title="Matches"
-        description="Match requests sent to ranked pairs — track responses, expiry, and triage by status."
+        title="Jumelages"
+        description="Demandes de jumelage envoyées aux paires classées — suivez les réponses, les expirations et triez par statut."
       />
 
       <div className="mb-4 flex flex-wrap gap-1.5">
@@ -60,19 +62,20 @@ export default async function MatchesPage({
 
       <Card>
         {matches.length === 0 ? (
-          <div className="py-12 text-center text-sm text-neutral-400">No match requests.</div>
+          <div className="py-12 text-center text-sm text-neutral-400">Aucune demande de jumelage.</div>
         ) : (
           <Table>
             <THead>
               <TR>
-                <TH>Male (♂)</TH>
-                <TH>Female (♀)</TH>
+                <TH>Homme (♂)</TH>
+                <TH>Femme (♀)</TH>
                 <TH>Score</TH>
-                <TH>Status</TH>
-                <TH>His response</TH>
-                <TH>Her response</TH>
-                <TH>Expires</TH>
-                <TH>Created</TH>
+                <TH>Statut</TH>
+                <TH>Mahram</TH>
+                <TH>Sa réponse à lui</TH>
+                <TH>Sa réponse à elle</TH>
+                <TH>Expiration</TH>
+                <TH>Créé le</TH>
                 <TH></TH>
               </TR>
             </THead>
@@ -98,6 +101,13 @@ export default async function MatchesPage({
                     <MatchStatusBadge status={m.status} />
                   </TD>
                   <TD>
+                    {m.status === "matched" || m.status === "rejected" ? (
+                      <MahramStatusBadge status={m.mahram_status} />
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
+                  </TD>
+                  <TD>
                     <MatchResponseBadge response={m.male_response} />
                   </TD>
                   <TD>
@@ -109,7 +119,12 @@ export default async function MatchesPage({
                   <TD className="text-xs text-neutral-500">{formatDateTime(m.created_at)}</TD>
                   <TD className="text-right">
                     {m.status === "pending" && <CancelMatchButton matchId={m.id} />}
-                    {m.status === "matched" && <EndMatchButton matchId={m.id} />}
+                    {m.status === "matched" && m.mahram_status === "pending" && (
+                      <MahramApprovalButtons matchId={m.id} />
+                    )}
+                    {m.status === "matched" && m.mahram_status === "approved" && (
+                      <EndMatchButton matchId={m.id} />
+                    )}
                   </TD>
                 </TR>
               ))}

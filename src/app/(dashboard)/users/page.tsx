@@ -3,9 +3,18 @@ import { listUsers } from "@/lib/data/users";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { UserStatusBadge } from "@/components/dashboard/status-badges";
 import { UsersToolbar } from "./users-toolbar";
 import { fullName, formatDate, initials } from "@/lib/format";
+import { ROLE_LABELS } from "@/lib/matching/labels";
+
+function roleVariant(role: string): "purple" | "blue" | "amber" | "default" {
+  if (role === "super_admin") return "purple";
+  if (role === "admin") return "blue";
+  if (role === "mahram") return "amber";
+  return "default";
+}
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +34,7 @@ export default async function UsersPage({
 
   return (
     <div>
-      <PageHeader title="Users" description={`${total} member${total === 1 ? "" : "s"}`} />
+      <PageHeader title="Membres" description={`${total} membre${total === 1 ? "" : "s"}`} />
 
       <UsersToolbar defaultQuery={sp.q ?? ""} defaultStatus={sp.status ?? "all"} />
 
@@ -33,18 +42,19 @@ export default async function UsersPage({
         <Table>
           <THead>
             <TR>
-              <TH>Member</TH>
-              <TH>Email</TH>
-              <TH>Location</TH>
-              <TH>Status</TH>
-              <TH>Joined</TH>
+              <TH>Membre</TH>
+              <TH>Courriel</TH>
+              <TH>Localisation</TH>
+              <TH>Rôle</TH>
+              <TH>Statut</TH>
+              <TH>Inscription</TH>
             </TR>
           </THead>
           <TBody>
             {items.length === 0 && (
               <TR>
-                <TD colSpan={5} className="py-10 text-center text-neutral-400">
-                  No users found.
+                <TD colSpan={6} className="py-10 text-center text-neutral-400">
+                  Aucun membre trouvé.
                 </TD>
               </TR>
             )}
@@ -68,6 +78,13 @@ export default async function UsersPage({
                 <TD>{u.email}</TD>
                 <TD>{[u.city, u.country].filter(Boolean).join(", ") || "—"}</TD>
                 <TD>
+                  {u.role === "user" ? (
+                    <span className="text-neutral-400">—</span>
+                  ) : (
+                    <Badge variant={roleVariant(u.role)}>{ROLE_LABELS[u.role] ?? u.role}</Badge>
+                  )}
+                </TD>
+                <TD>
                   <UserStatusBadge status={u.status} />
                 </TD>
                 <TD>{formatDate(u.created_at)}</TD>
@@ -80,11 +97,11 @@ export default async function UsersPage({
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between text-sm text-neutral-500">
           <span>
-            Page {page} of {totalPages}
+            Page {page} sur {totalPages}
           </span>
           <div className="flex gap-2">
-            <PageLink sp={sp} page={page - 1} disabled={page <= 1} label="Previous" />
-            <PageLink sp={sp} page={page + 1} disabled={page >= totalPages} label="Next" />
+            <PageLink sp={sp} page={page - 1} disabled={page <= 1} label="Précédent" />
+            <PageLink sp={sp} page={page + 1} disabled={page >= totalPages} label="Suivant" />
           </div>
         </div>
       )}

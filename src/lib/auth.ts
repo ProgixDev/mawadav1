@@ -26,7 +26,8 @@ export const getAdminUser = cache(async function getAdminUser(): Promise<UserRow
     .single<UserRow>();
 
   if (error || !data) return null;
-  if (data.role !== "admin") return null;
+  // Super admins are admins too: both roles may use the dashboard.
+  if (data.role !== "admin" && data.role !== "super_admin") return null;
   return data;
 });
 // Guard for dashboard pages/actions. Redirects non-admins away.
@@ -34,5 +35,15 @@ export async function requireAdmin(): Promise<UserRow> {
   const user = await getAdminUser();
   if (!user) redirect("/login");
   return user;
-  
+}
+
+// Guard for super-admin-only actions (e.g. granting/revoking the super-admin
+// role). Throws rather than redirects so server actions surface a clear error.
+export async function requireSuperAdmin(): Promise<UserRow> {
+  const user = await getAdminUser();
+  if (!user) redirect("/login");
+  if (user.role !== "super_admin") {
+    throw new Error("Action réservée aux super administrateurs.");
+  }
+  return user;
 }

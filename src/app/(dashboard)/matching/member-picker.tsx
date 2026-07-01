@@ -41,13 +41,13 @@ export function MemberPicker({
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search members…"
+          placeholder="Rechercher des membres…"
           className="pl-9"
         />
       </div>
       <div className="flex-1 space-y-1 overflow-y-auto pr-1">
         {filtered.length === 0 && (
-          <p className="px-2 py-4 text-sm text-neutral-400">No members found.</p>
+          <p className="px-2 py-4 text-sm text-neutral-400">Aucun membre trouvé.</p>
         )}
         {filtered.map((m) => (
           <Link

@@ -8,6 +8,7 @@ import {
   markConversationRead,
   fetchMessages,
   setMessageModeration,
+  translateMessage,
 } from "../actions";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/input";
@@ -32,6 +33,38 @@ export function ChatPanel({
   const [body, setBody] = useState("");
   const [pending, startTransition] = useTransition();
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // On-demand translations keyed by message id. `shown` toggles between the
+  // original and its French translation; `text`/`error` are cached so a second
+  // click never re-calls Gemini.
+  type Translation = { loading?: boolean; text?: string; error?: string; shown: boolean };
+  const [translations, setTranslations] = useState<Record<string, Translation>>({});
+
+  function handleTranslate(m: MessageRow) {
+    const existing = translations[m.id];
+    // Already fetched → just toggle visibility.
+    if (existing?.text || existing?.error) {
+      setTranslations((t) => ({ ...t, [m.id]: { ...existing, shown: !existing.shown } }));
+      return;
+    }
+    if (existing?.loading) return;
+    setTranslations((t) => ({ ...t, [m.id]: { loading: true, shown: true } }));
+    translateMessage(m.body)
+      .then((res) => {
+        setTranslations((t) => ({
+          ...t,
+          [m.id]: res.ok
+            ? { text: res.text, shown: true }
+            : { error: res.error, shown: true },
+        }));
+      })
+      .catch(() => {
+        setTranslations((t) => ({
+          ...t,
+          [m.id]: { error: "Traduction indisponible.", shown: true },
+        }));
+      });
+  }
 
   function mergeMessages(incoming: MessageRow[]) {
     setMessages((prev) => {
@@ -144,12 +177,13 @@ export function ChatPanel({
       <div className="flex-1 space-y-3 overflow-y-auto p-5">
         {messages.length === 0 && (
           <p className="py-10 text-center text-sm text-neutral-400">
-            No messages yet. Say salam 👋
+            Aucun message pour le moment. Dites salam 👋
           </p>
         )}
         {messages.map((m) => {
           const mine = m.sender_id === adminId;
           const removed = m.moderation_status === "removed";
+          const tr = translations[m.id];
           return (
             <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
               <div className={cn("group max-w-[75%]", mine ? "items-end" : "items-start")}>
@@ -164,6 +198,18 @@ export function ChatPanel({
                 >
                   {m.body}
                 </div>
+                {!mine && tr?.shown && (tr.text || tr.error) && (
+                  <div
+                    className={cn(
+                      "mt-1 rounded-2xl rounded-bl-sm border px-4 py-2 text-sm",
+                      tr.error
+                        ? "border-red-100 bg-red-50 text-red-600"
+                        : "border-brand/15 bg-brand/5 text-neutral-700",
+                    )}
+                  >
+                    {tr.error ?? tr.text}
+                  </div>
+                )}
                 <div
                   className={cn(
                     "mt-1 flex items-center gap-2 text-[11px] text-neutral-400",
@@ -175,12 +221,27 @@ export function ChatPanel({
                     <ModerationBadge status={m.moderation_status} />
                   )}
                   {!mine && (
-                    <button
-                      onClick={() => toggleModeration(m)}
-                      className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
-                    >
-                      {removed ? "Restore" : "Remove"}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleTranslate(m)}
+                        disabled={tr?.loading}
+                        className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-brand disabled:opacity-60 disabled:group-hover:opacity-60"
+                      >
+                        {tr?.loading
+                          ? "Traduction…"
+                          : tr?.shown && (tr.text || tr.error)
+                            ? "Voir l’original"
+                            : tr?.text || tr?.error
+                              ? "Voir la traduction"
+                              : "Traduire"}
+                      </button>
+                      <button
+                        onClick={() => toggleModeration(m)}
+                        className="opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600"
+                      >
+                        {removed ? "Restaurer" : "Retirer"}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -201,7 +262,7 @@ export function ChatPanel({
                 handleSend();
               }
             }}
-            placeholder="Write a reply…  (Enter to send, Shift+Enter for new line)"
+            placeholder="Écrire une réponse…  (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)"
             className="min-h-[44px] max-h-32 resize-none"
             rows={1}
           />

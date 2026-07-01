@@ -23,6 +23,13 @@ export const PRACTICE_SCALE: Record<string, number> = {
   very_practicing: 4,
 };
 
+// Prayer habit (religious criterion). Ordinal: closeness scores compatibility.
+export const PRAYER_SCALE: Record<string, number> = {
+  never: 1,
+  sometimes: 2,
+  regularly: 3,
+};
+
 export const EDUCATION_SCALE: Record<string, number> = {
   no_formal: 1,
   secondary: 2,
@@ -148,6 +155,8 @@ export interface MatchProfileInput {
   gender: string | null;
   age: number | null;
   practiceLevel: string | null;
+  prayerFrequency: string | null; // never | sometimes | regularly
+  wearsHijab: boolean | null; // female profiles only
   maritalStatus: string | null;
   hasChildren: boolean;
   educationLevel: string | null;
@@ -209,6 +218,8 @@ export const W_PREFERRED = 4;
 export const DIMENSION_TO_CRITERION: Record<string, string> = {
   age: "age",
   practice: "practice",
+  prayer: "prayer",
+  hijab: "hijab",
   marital: "marital",
   children_has: "children_has",
   children_wants: "children_wants",
