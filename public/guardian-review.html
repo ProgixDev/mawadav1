@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guardian Review</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--ink:#16201c;--muted:#6b7773;--green:#0a7c5a;--red:#c0392b;--line:#e6e9e8}
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:960px;margin:0 auto;padding:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  h1{font-size:20px;margin:0 0 4px} h2{font-size:16px;margin:0 0 10px}
+  .muted{color:var(--muted)} label{display:block;font-size:13px;margin:12px 0 4px;color:var(--muted)}
+  input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:15px}
+  button{border:0;border-radius:9px;padding:11px 16px;font-size:15px;font-weight:600;cursor:pointer}
+  .primary{background:var(--green);color:#fff;width:100%}
+  .danger{background:var(--red);color:#fff} .ghost{background:#eef1f0;color:var(--ink)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .photos{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+  .photos img{height:150px;border-radius:10px;object-fit:cover}
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{padding:8px 14px;border-radius:999px;background:#eef1f0;cursor:pointer;font-size:14px}
+  .tab.active{background:var(--green);color:#fff}
+  .msg{max-width:78%;padding:8px 12px;border-radius:12px;margin:6px 0}
+  .male{background:#eef1f0;margin-right:auto} .female{background:#dcefe7;margin-left:auto}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .kv{margin:2px 0}.kv b{font-weight:600}
+  .err{color:var(--red);font-size:13px;margin-top:8px;min-height:18px}
+  dialog{border:0;border-radius:14px;padding:20px;max-width:400px}
+  dialog::backdrop{background:rgba(0,0,0,.4)}
+  .row{display:flex;gap:10px;margin-top:14px}
+</style></head>
+<body><div class="wrap">
+
+  <div id="login" class="card" style="max-width:420px;margin:40px auto">
+    <h1>Guardian review</h1>
+    <p class="muted">You've been asked to review a proposed match for your ward.</p>
+    <label>Password</label>
+    <input id="pw" type="password" autocomplete="off"
+           placeholder="ward's first name + birthday, e.g. sara12121999">
+    <div class="err" id="loginErr"></div>
+    <button class="primary" id="loginBtn">Continue</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h1 style="margin:0">Proposed match</h1>
+        <span class="badge" id="status"></span>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="profiles">Profiles</div>
+      <div class="tab" data-tab="chat">Conversation</div>
+    </div>
+
+    <div id="tab-profiles">
+      <div class="grid">
+        <div class="card"><h2>Suggested suitor</h2><div id="male"></div></div>
+        <div class="card"><h2>Your ward</h2><div id="female"></div></div>
+      </div>
+    </div>
+
+    <div id="tab-chat" style="display:none">
+      <div class="card">
+        <p class="muted">Read-only. You are viewing this as guardian and cannot post.</p>
+        <div id="chat"></div>
+      </div>
+    </div>
+
+    <div class="card" id="breakCard">
+      <h2>End the relationship</h2>
+      <p class="muted">If you believe this match should not continue, you can end it.
+        Both parties will be notified and can no longer message each other.</p>
+      <button class="danger" id="breakBtn">Break relationship</button>
+    </div>
+  </div>
+
+  <dialog id="confirm">
+    <h2>End this relationship?</h2>
+    <p class="muted">This cannot be undone. Both users will be notified.</p>
+    <label for="reason">Reason (optional)</label>
+    <textarea id="reason" rows="3" maxlength="2000"
+      style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;resize:vertical"
+      placeholder="You may explain why (optional). This is shared with the administrator."></textarea>
+    <div class="row">
+      <button class="ghost" id="cancelBreak" style="flex:1">Cancel</button>
+      <button class="danger" id="confirmBreak" style="flex:1">Yes, end it</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+// Absolute API base — the page is hosted outside Supabase, the API on the functions domain.
+const API='https://bnsupcvjwyxqofasjxcg.functions.supabase.co/guardian-review/api/';
+const qs=new URLSearchParams(location.search); const token=qs.get('t')||'';
+let SESSION=''; // bearer token from login, kept in memory only
+const $=id=>document.getElementById(id);
+const api=(p,o={})=>{
+  const headers={...(o.headers||{})};
+  if(SESSION) headers['Authorization']='Bearer '+SESSION;
+  return fetch(API+p,{...o,headers}).then(async r=>({ok:r.ok,status:r.status,body:await r.json().catch(()=>({}))}));
+};
+
+$('loginBtn').onclick=async()=>{
+  $('loginErr').textContent='';
+  const r=await api('login',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({token,password:$('pw').value})});
+  if(r.ok){SESSION=r.body.session||''; show();}
+  else $('loginErr').textContent = r.status===429?'Too many attempts. Try again later.':'Incorrect password or expired link.';
+};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
+
+function esc(s){return (s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function age(b){if(!b)return'';const d=new Date(b);return Math.floor((Date.now()-d)/3.15576e10)+' yrs';}
+
+function renderProfile(el,p,photos){
+  const pr=p||{}; let h='';
+  if(photos&&photos.length){h+='<div class="photos">'+photos.map(u=>'<img src="'+esc(u)+'">').join('')+'</div>';}
+  const fields=[['Name',[pr.first_name,pr.last_name].filter(Boolean).join(' ')],
+    ['Age',age(pr.birthdate)],['City',pr.city||pr.location],['Country',pr.country],
+    ['Bio',pr.bio||pr.about]];
+  for(const[k,v]of fields){if(v)h+='<div class="kv"><b>'+k+':</b> '+esc(v)+'</div>';}
+  el.innerHTML=h||'<span class="muted">No details.</span>';
+}
+
+async function show(){
+  $('login').style.display='none'; $('app').style.display='block';
+  const o=await api('overview'); if(!o.ok){location.reload();return;}
+  const b=o.body;
+  const st=$('status'); st.textContent=b.status;
+  st.style.background = b.status==='matched'?'#dcefe7':'#f2d7d3';
+  renderProfile($('male'),b.male.profile,b.male.photos);
+  renderProfile($('female'),b.female.profile,b.female.photos);
+  if(b.status!=='matched'){$('breakCard').style.display='none';}
+  const c=await api('conversation');
+  $('chat').innerHTML=(c.body.messages||[]).map(m=>
+    '<div class="msg '+(m.side==='female'?'female':'male')+'">'+esc(m.body)+'</div>').join('')
+    || '<p class="muted">No messages yet.</p>';
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  $('tab-profiles').style.display=t.dataset.tab==='profiles'?'block':'none';
+  $('tab-chat').style.display=t.dataset.tab==='chat'?'block':'none';
+});
+
+$('breakBtn').onclick=()=>$('confirm').showModal();
+$('cancelBreak').onclick=()=>$('confirm').close();
+$('confirmBreak').onclick=async()=>{
+  const reason=$('reason').value;
+  $('confirm').close();
+  const r=await api('break',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({reason})});
+  if(r.ok){show();}
+};
+</script>
+</body></html>
