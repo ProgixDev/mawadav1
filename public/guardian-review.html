@@ -83,6 +83,7 @@
     <textarea id="reason" rows="3" maxlength="2000"
       style="width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font:inherit;resize:vertical"
       placeholder="You may explain why (optional). This is shared with the administrator."></textarea>
+    <div class="err" id="breakErr"></div>
     <div class="row">
       <button class="ghost" id="cancelBreak" style="flex:1">Cancel</button>
       <button class="danger" id="confirmBreak" style="flex:1">Yes, end it</button>
@@ -146,14 +147,23 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   $('tab-chat').style.display=t.dataset.tab==='chat'?'block':'none';
 });
 
-$('breakBtn').onclick=()=>$('confirm').showModal();
+$('breakBtn').onclick=()=>{$('breakErr').textContent='';$('confirm').showModal();};
 $('cancelBreak').onclick=()=>$('confirm').close();
 $('confirmBreak').onclick=async()=>{
+  const btn=$('confirmBreak');
   const reason=$('reason').value;
-  $('confirm').close();
-  const r=await api('break',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({reason})});
-  if(r.ok){show();}
+  $('breakErr').textContent='';
+  btn.disabled=true; btn.textContent='Ending…';
+  try{
+    const r=await api('break',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({reason})});
+    if(r.ok){$('confirm').close();show();}
+    else{$('breakErr').textContent=r.body?.error||'Could not end the relationship. Please try again.';}
+  }catch(e){
+    $('breakErr').textContent='Network error — please check your connection and try again.';
+  }finally{
+    btn.disabled=false; btn.textContent='Yes, end it';
+  }
 };
 </script>
 </body></html>
