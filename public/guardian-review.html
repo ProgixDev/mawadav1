@@ -34,7 +34,7 @@
 
   <div id="login" class="card" style="max-width:420px;margin:40px auto">
     <h1>Guardian review</h1>
-    <p class="muted">You've been asked to review a proposed match for your ward.</p>
+    <p class="muted">Use the password from your email to continue.</p>
     <label>Password</label>
     <input id="pw" type="password" autocomplete="off"
            placeholder="ward's first name + birthday, e.g. sara12121999">
@@ -45,18 +45,18 @@
   <div id="app" style="display:none">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <h1 style="margin:0">Proposed match</h1>
+        <h1 style="margin:0" id="title">Proposed match</h1>
         <span class="badge" id="status"></span>
       </div>
     </div>
-    <div class="tabs">
+    <div class="tabs" id="tabsBar">
       <div class="tab active" data-tab="profiles">Profiles</div>
       <div class="tab" data-tab="chat">Conversation</div>
     </div>
 
     <div id="tab-profiles">
-      <div class="grid">
-        <div class="card"><h2>Suggested suitor</h2><div id="male"></div></div>
+      <div class="grid" id="profilesGrid">
+        <div class="card" id="maleCard"><h2>Suggested suitor</h2><div id="male"></div></div>
         <div class="card"><h2>Your ward</h2><div id="female"></div></div>
       </div>
     </div>
@@ -129,11 +129,28 @@ async function show(){
   $('login').style.display='none'; $('app').style.display='block';
   const o=await api('overview'); if(!o.ok){location.reload();return;}
   const b=o.body;
+
+  if(b.mode==='profile'){
+    $('title').textContent="Your ward's profile";
+    $('status').style.display='none';
+    $('tabsBar').style.display='none';
+    $('tab-chat').style.display='none';
+    $('maleCard').style.display='none';
+    $('profilesGrid').style.gridTemplateColumns='1fr';
+    $('breakCard').style.display='none';
+    renderProfile($('female'),b.female.profile,b.female.photos);
+    return;
+  }
+
+  $('status').style.display='';
+  $('tabsBar').style.display='';
+  $('maleCard').style.display='';
+  $('profilesGrid').style.gridTemplateColumns='';
   const st=$('status'); st.textContent=b.status;
   st.style.background = b.status==='matched'?'#dcefe7':'#f2d7d3';
   renderProfile($('male'),b.male.profile,b.male.photos);
   renderProfile($('female'),b.female.profile,b.female.photos);
-  if(b.status!=='matched'){$('breakCard').style.display='none';}
+  $('breakCard').style.display = b.status==='matched'?'':'none';
   const c=await api('conversation');
   $('chat').innerHTML=(c.body.messages||[]).map(m=>
     '<div class="msg '+(m.side==='female'?'female':'male')+'">'+esc(m.body)+'</div>').join('')
