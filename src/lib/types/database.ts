@@ -172,6 +172,9 @@ export interface MatchRow {
   expires_at: string | null;
   mahram_delivered: boolean | null;
   mahram_status: MahramStatus;
+  ended_by: "mahram" | "admin" | null;
+  end_reason: string | null;
+  ended_at: string | null;
   created_at: string;
   updated_at: string;
 }

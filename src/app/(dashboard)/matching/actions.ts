@@ -128,9 +128,15 @@ export async function endMatch(
   const admin = createAdminClient();
 
   async function setStatus(status: "ended" | "cancelled") {
+    const now = new Date().toISOString();
     return admin
       .from("matches")
-      .update({ status, updated_at: new Date().toISOString() })
+      .update({
+        status,
+        ended_by: "admin",
+        ended_at: now,
+        updated_at: now,
+      })
       .eq("id", matchId)
       .eq("status", "matched")
       .select("id");
@@ -155,25 +161,5 @@ export async function endMatch(
 
   revalidatePath("/matches");
   revalidatePath("/matching");
-  return { ok: true };
-}
-
-// Approve or reject a match's mahram step ON BEHALF of the guardian, from the
-// dashboard. Calls the same RPC the mahram's mobile app uses (service-role is
-// allowed by the function). On approval the direct male<->female conversation
-// is opened and chat/calls unlock; on rejection everything stays locked.
-export async function mahramRespondAsAdmin(
-  matchId: string,
-  response: "approved" | "rejected",
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  await requireAdmin();
-  const admin = createAdminClient();
-  const { error } = await admin.rpc("mahram_respond_to_match", {
-    p_match_id: matchId,
-    p_response: response,
-  });
-  if (error) return { ok: false, error: error.message };
-
-  revalidatePath("/matches");
   return { ok: true };
 }

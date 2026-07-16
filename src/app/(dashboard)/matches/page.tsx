@@ -7,13 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   MatchStatusBadge,
   MatchResponseBadge,
-  MahramStatusBadge,
 } from "@/components/dashboard/status-badges";
 import { formatDateTime, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CancelMatchButton } from "./cancel-match-button";
 import { EndMatchButton } from "./end-match-button";
-import { MahramApprovalButtons } from "./mahram-approval-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +69,6 @@ export default async function MatchesPage({
                 <TH>Femme (♀)</TH>
                 <TH>Score</TH>
                 <TH>Statut</TH>
-                <TH>Mahram</TH>
                 <TH>Sa réponse à lui</TH>
                 <TH>Sa réponse à elle</TH>
                 <TH>Expiration</TH>
@@ -99,12 +96,19 @@ export default async function MatchesPage({
                   </TD>
                   <TD>
                     <MatchStatusBadge status={m.status} />
-                  </TD>
-                  <TD>
-                    {m.status === "matched" || m.status === "rejected" ? (
-                      <MahramStatusBadge status={m.mahram_status} />
-                    ) : (
-                      <span className="text-neutral-400">—</span>
+                    {m.status === "ended" && (m.ended_by || m.end_reason) && (
+                      <div className="mt-1 max-w-56 text-xs text-neutral-500">
+                        {m.ended_by === "mahram"
+                          ? "Terminé par le mahram"
+                          : m.ended_by === "admin"
+                            ? "Terminé par l'admin"
+                            : "Terminé"}
+                        {m.end_reason && (
+                          <div className="mt-0.5 italic text-neutral-400">
+                            « {m.end_reason} »
+                          </div>
+                        )}
+                      </div>
                     )}
                   </TD>
                   <TD>
@@ -119,12 +123,7 @@ export default async function MatchesPage({
                   <TD className="text-xs text-neutral-500">{formatDateTime(m.created_at)}</TD>
                   <TD className="text-right">
                     {m.status === "pending" && <CancelMatchButton matchId={m.id} />}
-                    {m.status === "matched" && m.mahram_status === "pending" && (
-                      <MahramApprovalButtons matchId={m.id} />
-                    )}
-                    {m.status === "matched" && m.mahram_status === "approved" && (
-                      <EndMatchButton matchId={m.id} />
-                    )}
+                    {m.status === "matched" && <EndMatchButton matchId={m.id} />}
                   </TD>
                 </TR>
               ))}

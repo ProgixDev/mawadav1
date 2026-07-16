@@ -249,48 +249,48 @@ export const LIFESTYLE_QUESTIONS: Record<
   { label: string; scale: string[]; ordinal: boolean }
 > = {
   family_proximity: {
-    label: "Living near family",
+    label: "Habiter près de la famille",
     scale: ["comfortable", "neutral", "prefer_distance"],
     ordinal: true,
   },
-  relocation: { label: "Willing to relocate", scale: ["yes", "depends", "no"], ordinal: true },
+  relocation: { label: "Prêt à déménager", scale: ["yes", "depends", "no"], ordinal: true },
   spouse_employment: {
-    label: "Spouse works or stays home",
+    label: "Conjoint travaille / reste à la maison",
     scale: ["works", "either", "stays_home"],
     ordinal: true,
   },
   quran_priority: {
-    label: "Importance of Qur'an memorisation",
+    label: "Priorité à la mémorisation du Coran",
     scale: ["low", "medium", "high", "essential"],
     ordinal: true,
   },
   islamic_knowledge_priority: {
-    label: "Importance of Islamic knowledge",
+    label: "Priorité au savoir islamique",
     scale: ["low", "medium", "high", "essential"],
     ordinal: true,
   },
   conflict_style: {
-    label: "Handling disagreements",
+    label: "Gestion des conflits",
     scale: ["discuss_calmly", "need_space", "seek_mediation"],
     ordinal: false,
   },
   financial_priority: {
-    label: "Importance of financial stability",
+    label: "Priorité à la stabilité financière",
     scale: ["low", "medium", "high", "essential"],
     ordinal: true,
   },
   household_responsibilities: {
-    label: "Household responsibilities",
+    label: "Responsabilités domestiques",
     scale: ["shared", "traditional", "flexible"],
     ordinal: false,
   },
   religious_practice_priority: {
-    label: "Importance of family religious practice",
+    label: "Priorité à la pratique religieuse familiale",
     scale: ["low", "medium", "high", "essential"],
     ordinal: true,
   },
   long_term_goals: {
-    label: "Long-term marriage goals",
+    label: "Objectifs à long terme",
     scale: ["family_first", "career_balance", "faith_centered", "growth_travel"],
     ordinal: false,
   },
