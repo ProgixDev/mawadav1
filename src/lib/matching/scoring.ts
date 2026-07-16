@@ -302,7 +302,11 @@ function countryRelocation(party: MatchParty, candidate: MatchParty): Scored {
     if (candReloc) return soft("country", "Pays / mobilité", 8, 6, "Seul le candidat est prêt à déménager");
     return hardSoft("country", "Pays / mobilité", 8, "Aucune des deux parties n'est prête à déménager");
   }
-  return soft("country", "Pays / mobilité", 8, 8, "Ouvert à la mobilité");
+  // No stated relocation preference either side (the common case today — no
+  // onboarding screen collects it yet) and the countries differ: partial
+  // credit, not full marks — otherwise same-country and different-country
+  // pairs score identically and the criterion never actually differentiates.
+  return soft("country", "Pays / mobilité", 8, candReloc ? 5 : 3, "Pays différents, préférence de mobilité inconnue");
 }
 
 // --- bonus criteria (candidate profile only) ---

@@ -7,6 +7,7 @@ import { scoreReciprocal, type ReciprocalResult } from "@/lib/matching/scoring";
 import type {
   ProfileRow,
   PartnerPreferencesRow,
+  MahramRow,
   MatchRow,
   MatchStatus,
 } from "@/lib/types/database";
@@ -22,6 +23,8 @@ export interface MatchableMember {
 
 export interface RankedCandidate extends MatchableMember {
   result: ReciprocalResult;
+  /** The candidate's mahram email, when she's female and has one on file. */
+  mahramEmail: string | null;
 }
 
 function oppositeGender(g: string | null): string | null {
@@ -81,13 +84,26 @@ async function loadBundle(userId: string): Promise<MemberBundle | null> {
 // sort last but are still returned so the admin sees why.
 export async function rankCandidatesFor(memberId: string): Promise<{
   member: MatchableMember | null;
+  /** The seeker's own mahram email, when she's female and has one on file. */
+  seekerMahramEmail: string | null;
   candidates: RankedCandidate[];
 }> {
   const admin = createAdminClient();
   const seeker = await loadBundle(memberId);
-  if (!seeker) return { member: null, candidates: [] };
+  if (!seeker) return { member: null, seekerMahramEmail: null, candidates: [] };
 
   const want = oppositeGender(seeker.member.gender);
+
+  const seekerMahramEmail =
+    seeker.member.gender === "female"
+      ? ((
+          await admin
+            .from("mahrams")
+            .select("email")
+            .eq("female_user_id", memberId)
+            .maybeSingle<Pick<MahramRow, "email">>()
+        ).data?.email ?? null)
+      : null;
 
   // Pull the candidate profile pool in one query, then their prefs in one more.
   let profileQuery = admin.from("profiles").select("*").neq("user_id", memberId);
@@ -96,16 +112,22 @@ export async function rankCandidatesFor(memberId: string): Promise<{
   const profiles = (profileRows ?? []) as ProfileRow[];
 
   const candidateIds = profiles.map((p) => p.user_id);
-  if (candidateIds.length === 0) return { member: seeker.member, candidates: [] };
+  if (candidateIds.length === 0) return { member: seeker.member, seekerMahramEmail, candidates: [] };
 
-  const [{ data: activeUsers }, { data: prefRows }] = await Promise.all([
+  const [{ data: activeUsers }, { data: prefRows }, { data: mahramRows }] = await Promise.all([
     admin.from("users").select("id").eq("status", "active").in("id", candidateIds),
     admin.from("partner_preferences").select("*").in("user_id", candidateIds),
+    // Mahram email only exists for female candidates; harmless no-op filter otherwise.
+    admin.from("mahrams").select("female_user_id, email").in("female_user_id", candidateIds),
   ]);
 
   const activeSet = new Set((activeUsers ?? []).map((u) => u.id as string));
   const prefsByUser = new Map<string, PartnerPreferencesRow>();
   for (const pr of (prefRows ?? []) as PartnerPreferencesRow[]) prefsByUser.set(pr.user_id, pr);
+  const mahramEmailByUser = new Map<string, string>();
+  for (const mr of (mahramRows ?? []) as Pick<MahramRow, "female_user_id" | "email">[]) {
+    mahramEmailByUser.set(mr.female_user_id, mr.email);
+  }
 
   const seekerParty = toParty(seeker.profile, seeker.prefs);
 
@@ -114,7 +136,11 @@ export async function rankCandidatesFor(memberId: string): Promise<{
     .map((p) => {
       const prefs = prefsByUser.get(p.user_id) ?? null;
       const result = scoreReciprocal(seekerParty, toParty(p, prefs));
-      return { ...memberFromProfile(p.user_id, p), result };
+      return {
+        ...memberFromProfile(p.user_id, p),
+        result,
+        mahramEmail: mahramEmailByUser.get(p.user_id) ?? null,
+      };
     })
     .sort((a, b) => {
       // passing hard gates first, then by mutual score desc
@@ -122,7 +148,7 @@ export async function rankCandidatesFor(memberId: string): Promise<{
       return b.result.mutualScore - a.result.mutualScore;
     });
 
-  return { member: seeker.member, candidates };
+  return { member: seeker.member, seekerMahramEmail, candidates };
 }
 
 // Live (non-cancelled, non-expired) match statuses for a seeker, keyed by the

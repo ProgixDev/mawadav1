@@ -70,6 +70,7 @@ export interface MahramRow {
   full_name: string;
   relationship: string;
   phone_number: string;
+  email: string;
   country: string | null;
   city: string | null;
   created_at: string | null;

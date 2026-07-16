@@ -293,6 +293,7 @@ export default async function UserDetailPage({
                   <Field label="Nom complet" value={mahram.full_name} />
                   <Field label="Lien de parenté" value={mahram.relationship} />
                   <Field label="Téléphone" value={mahram.phone_number} />
+                  <Field label="Email" value={mahram.email} />
                   <Field
                     label="Localisation"
                     value={[mahram.city, mahram.country].filter(Boolean).join(", ")}

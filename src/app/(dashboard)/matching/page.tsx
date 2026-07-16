@@ -75,6 +75,16 @@ function CandidateCard({
               </span>
             </div>
             <p className="mt-1 text-sm text-neutral-500">{primary.rationale}</p>
+            {c.gender === "female" && (
+              <p className="mt-1 text-xs text-neutral-400">
+                Mahram :{" "}
+                {c.mahramEmail ? (
+                  <span className="text-neutral-600">{c.mahramEmail}</span>
+                ) : (
+                  <span className="italic">non renseigné</span>
+                )}
+              </p>
+            )}
           </div>
           <div className="text-right">
             {passed ? (
@@ -106,9 +116,14 @@ function CandidateCard({
             Détail du score ({c.name} comme candidat)
           </summary>
           <div className="mt-2 divide-y divide-neutral-100 border-t border-neutral-100 pt-1">
-            {primary.criteria.map((cr: CriterionScore) => (
-              <CriterionRow key={cr.key} c={cr} />
-            ))}
+            {primary.criteria
+              // Gender is a fixed prerequisite already enforced by the candidate
+              // pool itself (only opposite-gender profiles are ever listed) — always
+              // 0/0 and never informative, so it's just noise here.
+              .filter((cr: CriterionScore) => cr.key !== "gender")
+              .map((cr: CriterionScore) => (
+                <CriterionRow key={cr.key} c={cr} />
+              ))}
             <div className="flex items-center justify-between pt-2 text-xs text-neutral-500">
               <span>Base {primary.baseScore} + bonus {primary.bonusScore}</span>
               <span className="font-semibold">= {primary.score}/100</span>
@@ -121,7 +136,7 @@ function CandidateCard({
             seekerId={seekerId}
             candidateId={c.userId}
             score={result.mutualScore}
-            disabled={!passed}
+            forced={!passed}
             existingStatus={existingStatus}
             unavailable={unavailable}
           />
@@ -168,9 +183,21 @@ async function CandidatePanel({ memberId }: { memberId: string }) {
 
       <div className="space-y-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            Candidats pour {ranked.member.name}
-          </h2>
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-900">
+              Candidats pour {ranked.member.name}
+            </h2>
+            {ranked.member.gender === "female" && (
+              <p className="text-xs text-neutral-400">
+                Mahram :{" "}
+                {ranked.seekerMahramEmail ? (
+                  <span className="text-neutral-600">{ranked.seekerMahramEmail}</span>
+                ) : (
+                  <span className="italic">non renseigné</span>
+                )}
+              </p>
+            )}
+          </div>
           <span className="text-sm text-neutral-400">
             {ranked.candidates.filter((c) => c.result.mutualPass).length} compatibles ·{" "}
             {ranked.candidates.length} au total
