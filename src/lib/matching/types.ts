@@ -47,33 +47,6 @@ export const QURAN_SCALE: Record<string, number> = {
   hafiz: 4,
 };
 
-export const ISLAMIC_EDUCATION_SCALE: Record<string, number> = {
-  none: 0,
-  self_taught: 1,
-  courses: 2,
-  formal: 3,
-};
-
-export const INCOME_SCALE: Record<string, number> = {
-  prefer_not_to_say: 0,
-  below_1k: 1,
-  "1k_3k": 2,
-  "3k_6k": 3,
-  "6k_10k": 4,
-  above_10k: 5,
-};
-
-// Timeline values are shared by the preference enum (marriage_timeline) and the
-// free-text profile field (marriage_goals); unrecognised goals fall back to
-// "not_sure" (the most flexible bucket) so they never hard-penalise.
-export const TIMELINE_SCALE: Record<string, number> = {
-  asap: 1,
-  within_1_year: 2,
-  "1_2_years": 3,
-  "2_plus_years": 4,
-  not_sure: 5,
-};
-
 // Wants-children alignment matrix, keyed `${candidate}|${seeker}`.
 // Mirrors the documented matrix exactly (rows = candidate, cols = seeker).
 export const WANTS_CHILDREN_MATRIX: Record<string, number> = {
@@ -115,33 +88,6 @@ export const HIGH_STATUS_PROFESSIONS: readonly string[] = [
   "therapist",
 ];
 
-// Nationalities treated as the same broad cultural region for the small
-// nationality bonus. Lower-cased for comparison.
-export const ARAB_NATIONALITIES: readonly string[] = [
-  "algerian",
-  "bahraini",
-  "comorian",
-  "djiboutian",
-  "egyptian",
-  "iraqi",
-  "jordanian",
-  "kuwaiti",
-  "lebanese",
-  "libyan",
-  "mauritanian",
-  "moroccan",
-  "omani",
-  "palestinian",
-  "qatari",
-  "saudi",
-  "somali",
-  "sudanese",
-  "syrian",
-  "tunisian",
-  "emirati",
-  "yemeni",
-];
-
 export const BONUS_CAP = 12;
 export const MAX_SCORE = 100;
 
@@ -166,13 +112,9 @@ export interface MatchProfileInput {
   country: string | null;
   willingToRelocate: boolean; // profile flag (the person themself)
   wantsChildren: string | null; // yes | no | open | inshallah
-  marriageGoals: string | null; // free text mapped onto TIMELINE_SCALE
   quranLevel: string | null;
-  islamicEducationLevel: string | null;
-  incomeRange: string | null;
   profession: string | null;
   heightCm: number | null;
-  nationality: string | null;
 }
 
 export interface MatchPrefsInput {
@@ -187,7 +129,6 @@ export interface MatchPrefsInput {
   preferredLanguages: string[]; // empty => no preference
   sameCountryOnly: boolean;
   willingToRelocate: string | null; // no | yes_if_needed | open
-  marriageTimeline: string | null;
   wantsChildren: string | null;
   // Onboarding dealbreakers. Each present value upgrades a soft criterion to a
   // hard gate (instant incompatibility):
@@ -228,13 +169,9 @@ export const DIMENSION_TO_CRITERION: Record<string, string> = {
   madhab: "madhab",
   language: "languages",
   location: "country",
-  timeline: "b_timeline",
   quran: "b_quran",
-  islamic_education: "b_islamic_ed",
-  income: "b_income",
   profession: "b_profession",
   height: "b_height",
-  nationality: "b_nationality",
 };
 
 // Reverse lookup: criterion key -> importance dimension key.

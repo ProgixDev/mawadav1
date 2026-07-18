@@ -1,17 +1,23 @@
 // Map raw Supabase rows onto the normalised matching inputs.
 //
-// The live `partner_preferences` table currently exposes only 6 of the columns
+// The live `partner_preferences` table currently exposes only 5 of the columns
 // the algorithm can use (min_age, max_age, wants_children, min_practice_level,
-// willing_to_relocate, marriage_timeline). The richer whitelist columns
-// (accepted_marital_statuses, accepts_partner_children, min_education_level,
-// accepted_smoking_statuses, accepted_madhabs, preferred_languages,
-// same_country_only) are added by the migration in
-// supabase/partner_preferences_matching_columns.sql.
+// willing_to_relocate). The richer whitelist columns (accepted_marital_statuses,
+// accepts_partner_children, min_education_level, accepted_smoking_statuses,
+// accepted_madhabs, preferred_languages, same_country_only) are added by the
+// migration in supabase/partner_preferences_matching_columns.sql.
 //
 // Until those columns exist we read them defensively and fall back to
 // *permissive* defaults — i.e. "no preference / no hard reject" — exactly the
 // graceful degradation the matrix specifies for empty arrays. As soon as the
 // columns are populated the corresponding criteria activate with no code change.
+//
+// Some profile/preference columns the matrix originally scored (income_range,
+// nationality, islamic_education_level, marriage_goals/marriage_timeline) have
+// no onboarding UI anywhere in the app to ever set them, so those four bonus
+// criteria were removed entirely rather than always scoring a dead 0 — see
+// scoring.ts. The columns themselves are untouched (still shown as raw profile
+// fields on the admin user detail page) in case they're collected later.
 
 import { age } from "@/lib/format";
 import type { ProfileRow, PartnerPreferencesRow } from "@/lib/types/database";
@@ -73,13 +79,9 @@ export function toProfileInput(p: ProfileRow | null): MatchProfileInput {
     country: p?.country ?? null,
     willingToRelocate: p?.willing_to_relocate ?? false,
     wantsChildren: coerceWantsChildren(p?.wants_children),
-    marriageGoals: p?.marriage_goals ?? null,
     quranLevel: p?.quran_level ?? null,
-    islamicEducationLevel: p?.islamic_education_level ?? null,
-    incomeRange: p?.income_range ?? null,
     profession: p?.profession ?? null,
     heightCm: p?.height_cm ?? null,
-    nationality: p?.nationality ?? null,
   };
 }
 
@@ -102,7 +104,6 @@ export function toPrefsInput(pref: PartnerPreferencesRow | null): MatchPrefsInpu
     sameCountryOnly:
       typeof row["same_country_only"] === "boolean" ? (row["same_country_only"] as boolean) : false,
     willingToRelocate: coerceRelocatePref(row["willing_to_relocate"]),
-    marriageTimeline: pref?.marriage_timeline ?? null,
     wantsChildren: coerceWantsChildren(pref?.wants_children),
     redFlags: asStringArray(row["red_flags"]),
     preferenceImportance: asStringMap(row["preference_importance"]),

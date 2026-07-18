@@ -35,6 +35,14 @@ function yesNo(v: boolean | null | undefined): string {
   return v ? "Oui" : "Non";
 }
 
+// 'married' is only ever set on a man's profile (he's seeking an additional
+// wife under polygyny) — flagged explicitly so admins reviewing/proposing
+// matches don't mistake it for an ordinary status.
+function maritalStatusLabel(v: string | null | undefined): string {
+  if (v === "married") return "Marié — recherche une épouse supplémentaire";
+  return v || "—";
+}
+
 function importanceVariant(v: string): "red" | "amber" | "default" {
   if (v === "must_have") return "red";
   if (v === "important") return "amber";
@@ -150,7 +158,7 @@ export default async function UserDetailPage({
               {p ? (
                 <dl className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
                   <Field label="Nationalité" value={p.nationality} />
-                  <Field label="Situation matrimoniale" value={p.marital_status} />
+                  <Field label="Situation matrimoniale" value={maritalStatusLabel(p.marital_status)} />
                   <Field label="A des enfants" value={yesNo(p.has_children)} />
                   <Field label="Nombre d'enfants" value={p.num_children ?? "—"} />
                   <Field label="Niveau d'études" value={p.education_level} />

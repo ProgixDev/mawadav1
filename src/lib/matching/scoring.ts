@@ -1,25 +1,22 @@
 // Pure matrimonial compatibility scoring engine.
 //
 // scoreMatch(seeker, candidate) evaluates the candidate against the seeker's
-// preferences, faithfully following the documented 17-criterion matrix. No I/O.
+// preferences, across every criterion backed by data the app actually
+// collects during onboarding. No I/O.
 // Keep this file behaviourally identical to the Dart mirror in
 // dating_app_flutter/lib/domain/services/matching/compatibility_scorer.dart.
 
 import {
-  ARAB_NATIONALITIES,
   BONUS_CAP,
   CRITERION_TO_DIMENSION,
   EDUCATION_SCALE,
   HIGH_STATUS_PROFESSIONS,
   IMPORTANCE,
-  INCOME_SCALE,
-  ISLAMIC_EDUCATION_SCALE,
   LIFESTYLE_QUESTIONS,
   MAX_SCORE,
   PRACTICE_SCALE,
   PRAYER_SCALE,
   RED_FLAGS,
-  TIMELINE_SCALE,
   WANTS_CHILDREN_MATRIX,
   W_IMPORTANT,
   W_PREFERRED,
@@ -311,36 +308,10 @@ function countryRelocation(party: MatchParty, candidate: MatchParty): Scored {
 
 // --- bonus criteria (candidate profile only) ---
 
-function timelineBonus(party: MatchParty, candidate: MatchParty): Scored {
-  const seeker = scaleValue(TIMELINE_SCALE, party.prefs.marriageTimeline);
-  const cand = scaleValue(TIMELINE_SCALE, candidate.profile.marriageGoals);
-  if (seeker == null || cand == null) {
-    return bonus("b_timeline", "Échéancier de mariage", 3, 0, "Données insuffisantes");
-  }
-  const diff = Math.abs(seeker - cand);
-  let pts: number;
-  if (diff === 0) pts = 3;
-  else if (diff === 1) pts = 2;
-  else if (diff <= 2) pts = 1;
-  else pts = -1;
-  return bonus("b_timeline", "Échéancier de mariage", 3, pts, `Écart d'échéancier ${diff}`);
-}
-
 function quranBonus(candidate: MatchParty): Scored {
   const v = norm(candidate.profile.quranLevel);
   const pts = ["recites", "memorising", "hafiz"].includes(v) ? 3 : 0;
   return bonus("b_quran", "Niveau de Coran", 3, pts, v || "aucun");
-}
-
-function islamicEducationBonus(candidate: MatchParty): Scored {
-  const v = scaleValue(ISLAMIC_EDUCATION_SCALE, candidate.profile.islamicEducationLevel) ?? 0;
-  const pts = v >= 2 ? 3 : v === 1 ? 1 : 0;
-  return bonus("b_islamic_ed", "Éducation islamique", 3, pts, candidate.profile.islamicEducationLevel ?? "aucune");
-}
-
-function incomeBonus(candidate: MatchParty): Scored {
-  const v = scaleValue(INCOME_SCALE, candidate.profile.incomeRange) ?? 0;
-  return bonus("b_income", "Revenu", 2, v >= 3 ? 2 : 0, candidate.profile.incomeRange ?? "—");
 }
 
 function professionBonus(candidate: MatchParty): Scored {
@@ -358,16 +329,6 @@ function heightBonus(candidate: MatchParty): Scored {
     else if (h > 180 && h <= 190) pts = 1;
   }
   return bonus("b_height", "Taille", 2, pts, h != null ? `${h}cm` : "—");
-}
-
-function nationalityBonus(party: MatchParty, candidate: MatchParty): Scored {
-  const cand = norm(candidate.profile.nationality);
-  const seeker = norm(party.profile.nationality);
-  let pts = 0;
-  if (cand && seeker && cand === seeker) pts = 1;
-  else if (cand && seeker && ARAB_NATIONALITIES.includes(cand) && ARAB_NATIONALITIES.includes(seeker)) pts = 0.5;
-  else if (norm(party.profile.country) && norm(party.profile.country) === norm(candidate.profile.country)) pts = 0.5;
-  return bonus("b_nationality", "Nationalité", 1, pts, candidate.profile.nationality ?? "—");
 }
 
 // --- small constructors to keep the criteria terse ---
@@ -510,13 +471,9 @@ export function scoreMatch(seeker: MatchParty, candidate: MatchParty): MatchResu
     madhab(seeker, candidate),
     languages(seeker, candidate),
     countryRelocation(seeker, candidate),
-    timelineBonus(seeker, candidate),
     quranBonus(candidate),
-    islamicEducationBonus(candidate),
-    incomeBonus(candidate),
     professionBonus(candidate),
     heightBonus(candidate),
-    nationalityBonus(seeker, candidate),
   ];
 
   // Gender is always a hard gate; every other criterion can be re-weighted by

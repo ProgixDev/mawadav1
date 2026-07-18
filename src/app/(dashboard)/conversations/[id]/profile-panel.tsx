@@ -24,6 +24,14 @@ function yesNo(v: boolean | null | undefined): string {
   return v ? "Oui" : "Non";
 }
 
+// 'married' is only ever set on a man's profile (he's seeking an additional
+// wife under polygyny) — flagged explicitly so admins reviewing/proposing
+// matches don't mistake it for an ordinary status.
+function maritalStatusLabel(v: string | null | undefined): string {
+  if (v === "married") return "Marié — recherche une épouse supplémentaire";
+  return v || "—";
+}
+
 /**
  * Clickable member name in the conversation header. Clicking it slides out a
  * read-only profile drawer over the chat so the admin can reference the
@@ -126,7 +134,7 @@ export function ProfilePanel({ user }: { user: UserWithProfile }) {
               </h3>
               <dl className="grid grid-cols-2 gap-x-6 divide-neutral-100">
                 <Field label="Nationalité" value={p.nationality} />
-                <Field label="Situation matrimoniale" value={p.marital_status} />
+                <Field label="Situation matrimoniale" value={maritalStatusLabel(p.marital_status)} />
                 <Field label="A des enfants" value={yesNo(p.has_children)} />
                 <Field label="Nombre d'enfants" value={p.num_children ?? "—"} />
                 <Field label="Niveau d'études" value={p.education_level} />
