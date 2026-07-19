@@ -9,12 +9,10 @@
 import {
   BONUS_CAP,
   CRITERION_TO_DIMENSION,
-  EDUCATION_SCALE,
   HIGH_STATUS_PROFESSIONS,
   IMPORTANCE,
   LIFESTYLE_QUESTIONS,
   MAX_SCORE,
-  PRACTICE_SCALE,
   PRAYER_SCALE,
   RED_FLAGS,
   WANTS_CHILDREN_MATRIX,
@@ -121,18 +119,6 @@ function age(party: MatchParty, candidate: MatchParty): Scored {
   };
 }
 
-function practice(party: MatchParty, candidate: MatchParty): Scored {
-  const min = scaleValue(PRACTICE_SCALE, party.prefs.minPracticeLevel);
-  if (min == null) {
-    return ok("practice", "Religiosité", "hard", 12, "Aucun minimum requis");
-  }
-  const cand = scaleValue(PRACTICE_SCALE, candidate.profile.practiceLevel) ?? 0;
-  if (cand >= min) {
-    return ok("practice", "Religiosité", "hard", 12, `Atteint le minimum requis (${candidate.profile.practiceLevel})`);
-  }
-  return hard("practice", "Religiosité", 12, `En dessous du niveau de pratique minimum (${party.prefs.minPracticeLevel})`);
-}
-
 // Prayer compatibility (religious criterion, significant weight). Scored only
 // when BOTH partners stated a prayer habit — otherwise neutral (0/0), so it
 // never penalises profiles created before this field existed. Closer prayer
@@ -163,28 +149,15 @@ function hijab(_party: MatchParty, candidate: MatchParty): Scored {
     : soft("hijab", "Hijab", 8, 3, "Ne porte pas le hijab");
 }
 
-function maritalStatus(party: MatchParty, candidate: MatchParty): Scored {
-  const accepted = party.prefs.acceptedMaritalStatuses.map(norm);
-  if (accepted.length === 0) {
-    return ok("marital", "État civil", "hard", 12, "Aucune restriction");
-  }
-  if (accepted.includes(norm(candidate.profile.maritalStatus))) {
-    return ok("marital", "État civil", "hard", 12, `Accepté (${candidate.profile.maritalStatus})`);
-  }
-  return hard("marital", "État civil", 12, `État civil non accepté (${candidate.profile.maritalStatus})`);
-}
-
 function hasChildren(party: MatchParty, candidate: MatchParty): Scored {
-  if (candidate.profile.hasChildren && !party.prefs.acceptsPartnerChildren) {
+  if (!candidate.profile.hasChildren) {
+    return ok("children_has", "A des enfants", "hard", 10, "N'a pas d'enfants");
+  }
+  // Red flag: the seeker marked "no children" as a dealbreaker during onboarding.
+  if (hasRedFlag(party, RED_FLAGS.noChildren) || !party.prefs.acceptsPartnerChildren) {
     return hard("children_has", "A des enfants", 10, "Le candidat a des enfants ; le demandeur ne l'accepte pas");
   }
-  return ok(
-    "children_has",
-    "A des enfants",
-    "hard",
-    10,
-    candidate.profile.hasChildren ? "A des enfants — accepté" : "N'a pas d'enfants",
-  );
+  return ok("children_has", "A des enfants", "hard", 10, "A des enfants — accepté");
 }
 
 function wantsChildren(party: MatchParty, candidate: MatchParty): Scored {
@@ -195,17 +168,6 @@ function wantsChildren(party: MatchParty, candidate: MatchParty): Scored {
   }
   const pts = WANTS_CHILDREN_MATRIX[`${cand}|${seeker}`] ?? 0;
   return soft("children_wants", "Souhaite des enfants", 10, pts, `${cand} vs ${seeker}`);
-}
-
-function education(party: MatchParty, candidate: MatchParty): Scored {
-  const min = scaleValue(EDUCATION_SCALE, party.prefs.minEducationLevel);
-  if (min == null) {
-    return soft("education", "Éducation", 10, 10, "Aucun minimum requis");
-  }
-  const cand = scaleValue(EDUCATION_SCALE, candidate.profile.educationLevel) ?? 0;
-  if (cand >= min) return soft("education", "Éducation", 10, 10, "Atteint ou dépasse le minimum requis");
-  if (cand === min - 1) return soft("education", "Éducation", 10, 5, "Un niveau en dessous du minimum requis");
-  return soft("education", "Éducation", 10, 0, "Deux niveaux ou plus en dessous du minimum requis");
 }
 
 function smoking(party: MatchParty, candidate: MatchParty): Scored {
@@ -223,26 +185,6 @@ function smoking(party: MatchParty, candidate: MatchParty): Scored {
     return soft("smoking", "Tabagisme", 8, 5, "Ancien fumeur, crédit partiel");
   }
   return soft("smoking", "Tabagisme", 8, 0, `Non accepté (${cand})`);
-}
-
-function madhab(party: MatchParty, candidate: MatchParty): Scored {
-  const accepted = party.prefs.acceptedMadhabs.map(norm);
-  const cand = norm(candidate.profile.madhhab);
-
-  // Red flag: a different madhab is an instant dealbreaker. The acceptable set
-  // is the explicit whitelist if given, otherwise the seeker's own madhab.
-  if (hasRedFlag(party, RED_FLAGS.differentMadhab)) {
-    const allowed = accepted.length > 0 ? accepted : [norm(party.profile.madhhab)].filter(Boolean);
-    if (cand && allowed.length > 0 && !allowed.includes(cand)) {
-      return hard("madhab", "Madhab", 7, "Rédhibitoire : le demandeur exige le même madhab");
-    }
-  }
-
-  if (accepted.length === 0) return soft("madhab", "Madhab", 7, 7, "Aucune préférence");
-  if (accepted.includes(cand)) {
-    return soft("madhab", "Madhab", 7, 7, `Préféré (${candidate.profile.madhhab})`);
-  }
-  return soft("madhab", "Madhab", 7, 2, `Madhab différent (${candidate.profile.madhhab})`);
 }
 
 function languages(party: MatchParty, candidate: MatchParty): Scored {
@@ -460,15 +402,11 @@ export function scoreMatch(seeker: MatchParty, candidate: MatchParty): MatchResu
   const natural: Scored[] = [
     genderGate(seeker, candidate),
     age(seeker, candidate),
-    practice(seeker, candidate),
     prayer(seeker, candidate),
     hijab(seeker, candidate),
-    maritalStatus(seeker, candidate),
     hasChildren(seeker, candidate),
     wantsChildren(seeker, candidate),
-    education(seeker, candidate),
     smoking(seeker, candidate),
-    madhab(seeker, candidate),
     languages(seeker, candidate),
     countryRelocation(seeker, candidate),
     quranBonus(candidate),

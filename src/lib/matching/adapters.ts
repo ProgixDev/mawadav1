@@ -42,10 +42,6 @@ function asStringMap(v: unknown): Record<string, string> {
   return {};
 }
 
-function asString(v: unknown): string | null {
-  return typeof v === "string" && v.trim() !== "" ? v : null;
-}
-
 // profile.wants_children is stored as text ('yes'|'no'|'open'|'inshallah') by the
 // mobile app even though the generated TS type currently says boolean — coerce
 // both shapes so the engine always sees the enum string.
@@ -90,16 +86,12 @@ export function toPrefsInput(pref: PartnerPreferencesRow | null): MatchPrefsInpu
   return {
     minAge: pref?.min_age ?? null,
     maxAge: pref?.max_age ?? null,
-    minPracticeLevel: pref?.min_practice_level ?? null,
     // Optional whitelist columns — permissive defaults until populated.
-    acceptedMaritalStatuses: asStringArray(row["accepted_marital_statuses"]),
     acceptsPartnerChildren:
       typeof row["accepts_partner_children"] === "boolean"
         ? (row["accepts_partner_children"] as boolean)
         : true,
-    minEducationLevel: asString(row["min_education_level"]),
     acceptedSmokingStatuses: asStringArray(row["accepted_smoking_statuses"]),
-    acceptedMadhabs: asStringArray(row["accepted_madhabs"]),
     preferredLanguages: asStringArray(row["preferred_languages"]),
     sameCountryOnly:
       typeof row["same_country_only"] === "boolean" ? (row["same_country_only"] as boolean) : false,

@@ -16,27 +16,11 @@ export type Priority = "hard" | "soft" | "bonus";
 // Enum scales (ordinal values). Unknown / null inputs map to the lowest tier.
 // ---------------------------------------------------------------------------
 
-export const PRACTICE_SCALE: Record<string, number> = {
-  non_practicing: 1,
-  somewhat_practicing: 2,
-  practicing: 3,
-  very_practicing: 4,
-};
-
 // Prayer habit (religious criterion). Ordinal: closeness scores compatibility.
 export const PRAYER_SCALE: Record<string, number> = {
   never: 1,
   sometimes: 2,
   regularly: 3,
-};
-
-export const EDUCATION_SCALE: Record<string, number> = {
-  no_formal: 1,
-  secondary: 2,
-  vocational: 3,
-  bachelors: 4,
-  masters: 5,
-  phd: 6,
 };
 
 export const QURAN_SCALE: Record<string, number> = {
@@ -120,19 +104,15 @@ export interface MatchProfileInput {
 export interface MatchPrefsInput {
   minAge: number | null;
   maxAge: number | null;
-  minPracticeLevel: string | null;
-  acceptedMaritalStatuses: string[]; // empty => accept all
   acceptsPartnerChildren: boolean; // true => no objection to children
-  minEducationLevel: string | null; // null => no minimum
   acceptedSmokingStatuses: string[]; // empty => accept all
-  acceptedMadhabs: string[]; // empty => no preference
   preferredLanguages: string[]; // empty => no preference
   sameCountryOnly: boolean;
   willingToRelocate: string | null; // no | yes_if_needed | open
   wantsChildren: string | null;
   // Onboarding dealbreakers. Each present value upgrades a soft criterion to a
   // hard gate (instant incompatibility):
-  //   smoking | different_madhab | different_country | wont_relocate | different_language
+  //   smoking | no_children | different_country | wont_relocate | different_language
   redFlags: string[];
   // Per-dimension importance: dimensionKey -> must_have|important|preferred|doesnt_matter.
   // Overrides the default weight of a criterion (see applyImportance in scoring.ts).
@@ -158,15 +138,11 @@ export const W_PREFERRED = 4;
 // Clean importance dimension key -> the scorer criterion key it controls.
 export const DIMENSION_TO_CRITERION: Record<string, string> = {
   age: "age",
-  practice: "practice",
   prayer: "prayer",
   hijab: "hijab",
-  marital: "marital",
   children_has: "children_has",
   children_wants: "children_wants",
-  education: "education",
   smoking: "smoking",
-  madhab: "madhab",
   language: "languages",
   location: "country",
   quran: "b_quran",
@@ -237,7 +213,7 @@ export const LIFESTYLE_QUESTIONS: Record<
 // Dart mirror and the onboarding picker.
 export const RED_FLAGS = {
   smoking: "smoking",
-  differentMadhab: "different_madhab",
+  noChildren: "no_children",
   differentCountry: "different_country",
   wontRelocate: "wont_relocate",
   differentLanguage: "different_language",
